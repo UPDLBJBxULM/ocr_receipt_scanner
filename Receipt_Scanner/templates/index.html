@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+  <meta charset="UTF-8" />
+  <meta content="width=device-width,initial-scale=1" name="viewport" />
+  <title>Receipt Scanner</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+  <body
+    class="flex justify-center items-center bg-purple-500 h-screen text-white"
+  >
+    <div
+      class="rounded-lg w-full bg-purple-500 max-w-md overflow-hidden shadow-lg"
+    >
+      <div class="p-4">
+        <div
+          class="rounded-lg bg-white flex flex-col h-[50vh] items-center justify-center relative shadow-md"
+        >
+          <p class="mb-2 text-gray-500 text-lg">Scan Receipt</p>
+          <img
+            alt="Preview"
+            class="rounded-lg w-full h-full hidden"
+            id="preview"
+          />
+          <video
+            autoplay
+            playsinline
+            class="rounded-lg w-full h-full"
+            id="video"
+          ></video>
+        </div>
+      </div>
+      <div
+        class="bg-purple-950 max-h-[45vh] no-scrollbar overflow-y-auto pb-6 pt-6 px-5 rounded-t-[25px]"
+      >
+        <div class="flex justify-between mb-4 space-x-3">
+          <button
+            class="rounded-lg w-full bg-gray-200 py-2 text-gray-800 px-4"
+            id="scan"
+          >
+            Scan
+          </button>
+          <input class="hidden" id="upload" type="file" accept="image/*" />
+          <label
+            class="rounded-lg w-full bg-gray-200 py-2 text-gray-800 px-4 cursor-pointer text-center"
+            for="upload"
+            >Upload</label
+          >
+        </div>
+        <div class="flex justify-between mb-4 space-x-3">
+          <select class="rounded-lg bg-gray-200 py-2 text-gray-800 px-4">
+            <option value="Rp" selected>Rp</option>
+            <option value="USD">USD</option>
+            <option value="EUR">EUR</option>
+          </select>
+          <input
+            class="rounded-lg bg-gray-200 py-2 text-gray-800 px-4 flex-grow"
+            placeholder="Amount"
+            id="amount"
+            type="number"
+          />
+        </div>
+        <div class="mb-6 space-y-3">
+          <select
+            id="rencanaId"
+            class="rounded-lg w-full bg-gray-200 py-2 text-gray-800 px-3"
+          >
+            <option value="" selected disabled>Choose Id Rencana</option>
+          </select>
+          <select
+            id="accountId"
+            class="rounded-lg w-full bg-gray-200 py-2 text-gray-800 px-3"
+          >
+            <option value="" selected disabled>Choose Account SKKO</option>
+          </select>
+          <input
+            class="rounded-lg w-full bg-gray-200 py-2 text-gray-800 px-4 uppercase"
+            id="kegiatan"
+            placeholder="KEGIATAN"
+          />
+          <input
+            class="rounded-lg w-full bg-gray-200 py-2 text-gray-800 px-4 uppercase"
+            id="lpj"
+            placeholder="LPJ"
+          />
+        </div>
+        <div class="flex justify-center">
+          <button
+            class="flex justify-center items-center bg-green-500 h-12 rounded-full w-12"
+            id="submitButton"
+          >
+            <svg
+              class="text-white h-6 w-6"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                clip-rule="evenodd"
+                d="M16.707 5.293a1 1 0 010 1.414l-7.39 7.39a1 1 0 01-1.32.083l-4.007-3.38a1 1 0 111.28-1.536l3.512 2.964 6.894-6.894a1 1 0 011.415 0z"
+                fill-rule="evenodd"
+              />
+            </svg>
+          </button>
+        </div>
+        <div class="flex justify-between mt-4 space-x-3">
+          <button
+            class="rounded-lg w-full bg-red-500 py-2 text-white"
+            id="resetButton"
+          >
+            Reset
+          </button>
+        </div>
+        <input type="hidden" id="filename" />
+      </div>
+    </div>
+
+    <script>
+      const video = document.getElementById("video");
+      const uploadInput = document.getElementById("upload");
+      const preview = document.getElementById("preview");
+      const scanButton = document.getElementById("scan");
+      const submitButton = document.getElementById("submitButton");
+      const rencanaIdSelect = document.getElementById("rencanaId");
+      const accountIdSelect = document.getElementById("accountId");
+      const amountInput = document.getElementById("amount");
+      const kegiatanInput = document.getElementById("kegiatan");
+      const lpjInput = document.getElementById("lpj");
+      // Get the reset button
+      const resetButton = document.getElementById("resetButton");
+
+      // Function to reset the form
+      resetButton.addEventListener("click", () => {
+        // Reset all input fields and selects
+        rencanaIdSelect.value = ""; // Reset dropdown
+        accountIdSelect.value = ""; // Reset dropdown
+        amountInput.value = ""; // Reset amount
+        kegiatanInput.value = ""; // Reset kegiatan
+        lpjInput.value = ""; // Reset lpj
+
+        // Reset the video and preview
+        if (photoTaken) {
+          preview.classList.add("hidden");
+          video.classList.remove("hidden");
+          scanButton.innerText = "Scan";
+          photoTaken = false;
+        }
+
+        uploadInput.value = ""; // Reset file input
+
+        // Optionally, restart the camera
+        startCamera();
+      });
+
+      let stream;
+      let photoTaken = false;
+
+      function startCamera() {
+        // Attempt to start with the rear camera (facingMode: "environment")
+        navigator.mediaDevices
+          .getUserMedia({ video: { facingMode: "environment" } })
+          .then((s) => {
+            stream = s;
+            video.srcObject = stream;
+          })
+          .catch((error) => {
+            console.warn(
+              "Rear camera not available, switching to front camera."
+            );
+            // Fallback to front camera if rear camera is not available
+            navigator.mediaDevices
+              .getUserMedia({ video: { facingMode: "user" } })
+              .then((s) => {
+                stream = s;
+                video.srcObject = stream;
+              })
+              .catch((err) => {
+                console.error("Camera access denied or not supported: ", err);
+                alert("Camera access is denied or not supported.");
+              });
+          });
+      }
+
+      async function requestPermissions() {
+        try {
+          const permissionStatus = await navigator.permissions.query({
+            name: "camera",
+          });
+
+          if (permissionStatus.state === "granted") {
+            startCamera();
+          } else if (permissionStatus.state === "prompt") {
+            await navigator.mediaDevices.getUserMedia({ video: true });
+            startCamera();
+          } else {
+            alert(
+              "Camera access is denied. Please allow camera access in your browser settings."
+            );
+          }
+        } catch (error) {
+          console.error("Error requesting camera permissions:", error);
+          alert("Error requesting camera permissions.");
+        }
+      }
+
+      // Start camera on page load
+      window.onload = () => {
+        startCamera();
+        fetchData();
+        requestPermissions();
+      };
+
+      // Capture image or reset the camera
+      scanButton.addEventListener("click", () => captureImage());
+
+      // Capture image from the camera
+      function captureImage() {
+        if (!photoTaken) {
+          const canvas = document.createElement("canvas");
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          canvas.getContext("2d").drawImage(video, 0, 0);
+          canvas.toBlob((blob) => {
+            processImageFile(blob); // Process the captured image
+          }, "image/png");
+
+          preview.src = canvas.toDataURL("image/png");
+          preview.classList.remove("hidden");
+          video.classList.add("hidden");
+          scanButton.innerText = "Scan Again";
+          photoTaken = true;
+        } else {
+          preview.classList.add("hidden");
+          video.classList.remove("hidden");
+          scanButton.innerText = "Scan";
+          photoTaken = false;
+        }
+      }
+
+      // Handle file upload
+      uploadInput.addEventListener("change", async () => {
+        const file = uploadInput.files[0];
+
+        const formData = new FormData();
+        formData.append("file", file); // 'file' should match the Flask 'request.files["file"]'
+
+        try {
+          const response = await fetch("/upload_file", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+
+            document.getElementById("filename").value = data.filename;
+
+            if (data.extracted_text) {
+              const cleanedAmount = data.extracted_text.replace(/,/g, "");
+              amountInput.value = cleanedAmount;
+
+              // Force re-render if needed
+              setTimeout(() => {
+                amountInput.value = cleanedAmount;
+              }, 100);
+            } else {
+              alert("No extracted text found. Please try again.");
+            }
+          }
+        } catch (error) {
+          console.error("Error during upload:", error);
+        }
+      });
+
+      // Process image (send to backend for receipt scanning)
+      async function processImageFile(file) {
+        const formData = new FormData();
+        formData.append("file", file); // Attach the image file
+
+        try {
+          const response = await fetch("/upload_file", {
+            method: "POST",
+            body: formData,
+          });
+
+          const data = await response.json();
+
+          // Store filename
+          document.getElementById("filename").value = data.filename;
+
+          if (response.ok && data.extracted_text) {
+            const cleanedAmount = data.extracted_text.replace(/,/g, "");
+            amountInput.value = cleanedAmount;
+
+            setTimeout(() => {
+              amountInput.value = cleanedAmount;
+            }, 100);
+          } else {
+            alert("No total_value detected. Please try again.");
+          }
+        } catch (error) {
+          console.error("Error processing image:", error);
+          alert("There was an error processing the image. Please try again.");
+        }
+      }
+
+      // Fetch 'Id Rencana' and 'Account SKKO' from backend
+      async function fetchData() {
+        const idRencanaData = await fetch("/fetch_id_rencana").then((res) =>
+          res.json()
+        );
+        const accountSkkosData = await fetch("/fetch_account_skkos").then(
+          (res) => res.json()
+        );
+
+        idRencanaData.forEach((id) => {
+          const option = document.createElement("option");
+          option.value = id;
+          option.textContent = id;
+          rencanaIdSelect.appendChild(option);
+        });
+
+        accountSkkosData.forEach((account) => {
+          const option = document.createElement("option");
+          option.value = account;
+          option.textContent = account;
+          accountIdSelect.appendChild(option);
+        });
+      }
+
+      // Submit form data to the backend
+      submitButton.addEventListener("click", async () => {
+        const selectedIdRencana = rencanaIdSelect.value;
+        const selectedAccountId = accountIdSelect.value;
+        const totalAmount = amountInput.value;
+        const kegiatan = kegiatanInput.value;
+        const lpj = lpjInput.value;
+        const filename = document.getElementById("filename").value;
+
+        // Check for empty fields before submission
+        if (
+          !selectedIdRencana ||
+          !selectedAccountId ||
+          !totalAmount ||
+          !kegiatan ||
+          !lpj ||
+          !filename
+        ) {
+          alert("All fields are required!");
+          return;
+        }
+
+        try {
+          const response = await fetch("/submit", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              rencana_id: selectedIdRencana,
+              account_skkos_id: selectedAccountId,
+              amount: totalAmount,
+              kegiatan: kegiatan,
+              lpj: lpj,
+              filename: filename,
+            }),
+          });
+
+          const result = await response.json();
+
+          if (response.ok && result.success) {
+            alert("Data submitted successfully!");
+          } else {
+            alert(`Submission failed: ${result.message}`);
+          }
+        } catch (error) {
+          console.error("Error during submission:", error);
+          alert("There was an error during submission. Please try again.");
+        }
+      });
+    </script>
+  </body>
+</html>
