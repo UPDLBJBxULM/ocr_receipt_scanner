@@ -9,9 +9,11 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from google.oauth2.service_account import Credentials
 from werkzeug.utils import secure_filename
-from datetime import datetime
+from datetime import datetime, timedelta
 import requests
 import mimetypes  # Add this import
+import uuid
+import glob
 
 # ------------------------ Configuration ------------------------ #
 
@@ -47,6 +49,19 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
 # ------------------------ Helper Functions ------------------------ #
+
+
+# Add a new function to generate a unique temporary filename
+def generate_temp_filename(extension=".jpg"):
+    return f"temp_{uuid.uuid4().hex}{extension}"
+
+
+# Add a function to clean up old temporary files
+def cleanup_temp_files(max_age_hours=1):
+    cutoff = datetime.now() - timedelta(hours=max_age_hours)
+    for temp_file in glob.glob(os.path.join(UPLOAD_FOLDER, "temp_*")):
+        if datetime.fromtimestamp(os.path.getmtime(temp_file)) < cutoff:
+            os.remove(temp_file)
 
 
 def set_google_credentials(json_path):
@@ -189,6 +204,25 @@ def index():
     """Render the main index page."""
     return render_template("index.html")
 
+def upload_to_google_drive(file_path):
+    url = "https://fh0kd5s9-3000.asse.devtunnels.ms/api/files/upload"
+
+    # Get the MIME type of the file
+    mime_type, _ = mimetypes.guess_type(file_path)
+    if mime_type is None:
+        mime_type = (
+            "application/octet-stream"  # Default to binary if type can't be guessed
+        )
+
+    with open(file_path, "rb") as file:
+        files = {"file": (os.path.basename(file_path), file, mime_type)}
+        response = requests.post(url, files=files)
+
+    if response.status_code == 200:
+        data = response.json()
+        return data["data"]["fileId"], data["data"]["fileLink"]
+    else:
+        raise Exception(f"Failed to upload file: {response.text}")
 
 @app.route("/upload_file", methods=["POST"])
 def upload_file():
@@ -206,10 +240,13 @@ def upload_file():
     np_img = np.frombuffer(file.read(), np.uint8)
     image = cv2.imdecode(np_img, cv2.IMREAD_COLOR)
 
-    # Save the file with a temporary name
-    temp_filename = "uploaded_temp.jpg"
-    file_path = os.path.join(UPLOAD_FOLDER, secure_filename(temp_filename))
+    # Generate a unique temporary filename
+    temp_filename = generate_temp_filename()
+    file_path = os.path.join(UPLOAD_FOLDER, temp_filename)
     cv2.imwrite(file_path, image)
+
+    # Clean up old temporary files
+    cleanup_temp_files()
 
     # Process the image using YOLO and OCR
     model = load_model(YOLO_MODEL_PATH)
@@ -235,29 +272,6 @@ def upload_file():
             404,
         )
 
-
-def upload_to_google_drive(file_path):
-    url = "https://fh0kd5s9-3000.asse.devtunnels.ms/api/files/upload"
-
-    # Get the MIME type of the file
-    mime_type, _ = mimetypes.guess_type(file_path)
-    if mime_type is None:
-        mime_type = (
-            "application/octet-stream"  # Default to binary if type can't be guessed
-        )
-
-    with open(file_path, "rb") as file:
-        files = {"file": (os.path.basename(file_path), file, mime_type)}
-        response = requests.post(url, files=files)
-
-    if response.status_code == 200:
-        data = response.json()
-        return data["data"]["fileId"], data["data"]["fileLink"]
-    else:
-        raise Exception(f"Failed to upload file: {response.text}")
-
-
-# Modify the submit_data function to include error handling and logging
 @app.route("/submit", methods=["POST"])
 def submit_data():
     try:
@@ -268,12 +282,12 @@ def submit_data():
         amount = data.get("amount")
         kegiatan = data.get("kegiatan")
         lpj = data.get("lpj")
-        filename = data.get("filename")  # Get the temporary file name
+        temp_filename = data.get("filename")  # Get the temporary file name
 
         # Validate inputs
         if not account_skkos_id:
             return jsonify({"error": "No account_skkos_id provided"}), 400
-        if not filename:
+        if not temp_filename:
             return jsonify({"error": "No uploaded file found"}), 400
 
         # Get the current date for the filename
@@ -297,13 +311,13 @@ def submit_data():
             new_filename = f"{current_date}_{pos}_{account}.jpg"
 
         # Rename the file
-        old_file_path = os.path.join(UPLOAD_FOLDER, secure_filename(filename))
+        temp_file_path = os.path.join(UPLOAD_FOLDER, temp_filename)
         new_file_path = os.path.join(UPLOAD_FOLDER, secure_filename(new_filename))
 
-        if os.path.exists(old_file_path):
-            os.rename(old_file_path, new_file_path)  # Rename the file
+        if os.path.exists(temp_file_path):
+            os.rename(temp_file_path, new_file_path)  # Rename the file
         else:
-            return jsonify({"error": "File does not exist"}), 400
+            return jsonify({"error": "Temporary file does not exist"}), 400
 
         # Upload the file to Google Drive
         try:
@@ -344,6 +358,9 @@ def submit_data():
 
         sheet.update_cells(cell_list)
 
+        # Clean up the local file after successful upload
+        os.remove(new_file_path)
+
         return jsonify(
             success=True,
             message=f"Data saved successfully in row {next_row}! File uploaded to Google Drive with ID: {file_id}",
@@ -352,7 +369,6 @@ def submit_data():
         app.logger.error(f"Error in submit_data: {str(e)}", exc_info=True)
         return jsonify(success=False, message=str(e)), 500
 
-
 # New route: Fetch Id Rencana from Google Sheets
 @app.route("/fetch_id_rencana", methods=["GET"])
 def fetch_id_rencana():
@@ -360,14 +376,12 @@ def fetch_id_rencana():
     id_rencana_data = query_from_sheet("RENCANA", 7)  # Column G of 'RENCANA'
     return jsonify(id_rencana_data), 200
 
-
 # New route: Fetch Account SKKO from Google Sheets
 @app.route("/fetch_account_skkos", methods=["GET"])
 def fetch_account_skkos():
     """Fetch 'Account SKKO' from the Google Sheet."""
     account_skkos_data = query_from_sheet("ACCOUNTLIST", 1)  # Column A of 'ACCOUNTLIST'
     return jsonify(account_skkos_data), 200
-
 
 @app.route("/suggestions", methods=["GET"])
 def get_suggestions():
