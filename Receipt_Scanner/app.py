@@ -10,6 +10,8 @@ from oauth2client.service_account import ServiceAccountCredentials
 from google.oauth2.service_account import Credentials
 from werkzeug.utils import secure_filename
 from datetime import datetime
+import requests
+import mimetypes  # Add this import
 
 # ------------------------ Configuration ------------------------ #
 
@@ -234,6 +236,28 @@ def upload_file():
         )
 
 
+def upload_to_google_drive(file_path):
+    url = "https://fh0kd5s9-3000.asse.devtunnels.ms/api/files/upload"
+
+    # Get the MIME type of the file
+    mime_type, _ = mimetypes.guess_type(file_path)
+    if mime_type is None:
+        mime_type = (
+            "application/octet-stream"  # Default to binary if type can't be guessed
+        )
+
+    with open(file_path, "rb") as file:
+        files = {"file": (os.path.basename(file_path), file, mime_type)}
+        response = requests.post(url, files=files)
+
+    if response.status_code == 200:
+        data = response.json()
+        return data["data"]["fileId"], data["data"]["fileLink"]
+    else:
+        raise Exception(f"Failed to upload file: {response.text}")
+
+
+# Modify the submit_data function to include error handling and logging
 @app.route("/submit", methods=["POST"])
 def submit_data():
     try:
@@ -280,13 +304,19 @@ def submit_data():
             os.rename(old_file_path, new_file_path)  # Rename the file
         else:
             return jsonify({"error": "File does not exist"}), 400
-        
+
+        # Upload the file to Google Drive
+        try:
+            file_id, file_link = upload_to_google_drive(new_file_path)
+        except Exception as upload_error:
+            app.logger.error(
+                f"Error uploading file to Google Drive: {str(upload_error)}"
+            )
+            return jsonify({"error": "Failed to upload file to Google Drive"}), 500
+
         # Append data to Google Sheet
         sheet = get_google_sheet()
         date = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
-        nota_link = (
-            "https://drive.google.com/drive/folders/1W2Z7Q-3-sefwt9-1Oicj0E6Sd9Lx2Rwx"
-        )
         barang_link = (
             "https://drive.google.com/drive/folders/1gD398GwpRldjfypzzKYTGb-9TqGYDxOe"
         )
@@ -295,7 +325,7 @@ def submit_data():
             date,
             amount,
             rencana_id,
-            nota_link,
+            file_link,  # Use the file_link from Google Drive
             barang_link,
             account_skkos_id,
             "",
@@ -316,7 +346,7 @@ def submit_data():
 
         return jsonify(
             success=True,
-            message=f"Data saved successfully in row {next_row}! File renamed to {new_filename}",
+            message=f"Data saved successfully in row {next_row}! File uploaded to Google Drive with ID: {file_id}",
         )
     except Exception as e:
         app.logger.error(f"Error in submit_data: {str(e)}", exc_info=True)
