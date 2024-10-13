@@ -1,220 +1,319 @@
 <!DOCTYPE html>
 <html lang="en">
-  <meta charset="UTF-8" />
-  <meta content="width=device-width,initial-scale=1" name="viewport" />
-  <title>Receipt Scanner</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-  </style>
-  <body
-    class="flex justify-center items-center bg-purple-500 h-screen text-white"
-  >
-    <div
-      class="rounded-lg w-full bg-purple-500 max-w-md overflow-hidden shadow-lg"
-    >
-      <div class="p-4">
-        <div
-          class="rounded-lg bg-white flex flex-col h-[50vh] items-center justify-center relative shadow-md"
-        >
-          <p class="mb-2 text-gray-500 text-lg">Scan Receipt</p>
-          <img
-            alt="Preview"
-            class="rounded-lg w-full h-full hidden"
-            id="preview"
-          />
-          <video
-            autoplay
-            playsinline
-            class="rounded-lg w-full h-full"
-            id="video"
-          ></video>
-        </div>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Receipt Scanner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Custom styles */
+      body {
+        background-color: #f3f4f6; /* Light gray background */
+      }
+
+      /* Loading Spinner Styles */
+      .spinner {
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        border-top: 4px solid #4f46e5; /* Indigo color */
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        animation: spin 1s linear infinite;
+        margin: auto;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Hide scrollbar */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+    </style>
+  </head>
+  <body class="flex items-center justify-center min-h-screen">
+    <!-- Container -->
+    <div class="bg-white shadow-md rounded-lg max-w-md w-full">
+      <!-- Header -->
+      <div class="bg-indigo-600 text-white text-center py-4 rounded-t-lg">
+        <h1 class="text-xl font-semibold">Receipt Scanner</h1>
       </div>
-      <div
-        class="bg-purple-950 max-h-[45vh] no-scrollbar overflow-y-auto pb-6 pt-6 px-5 rounded-t-[25px]"
-      >
-        <div class="flex justify-between mb-4 space-x-3">
-          <button
-            class="rounded-lg w-full bg-gray-200 py-2 text-gray-800 px-4"
-            id="scan"
+
+      <!-- Content -->
+      <div class="p-6">
+        <!-- Image/Video Container -->
+        <div class="relative mb-6">
+          <div
+            class="border border-gray-300 rounded-lg overflow-hidden h-64 flex items-center justify-center bg-gray-100"
           >
-            Scan
-          </button>
-          <input class="hidden" id="upload" type="file" accept="image/*" />
-          <label
-            class="rounded-lg w-full bg-gray-200 py-2 text-gray-800 px-4 cursor-pointer text-center"
-            for="upload"
-            >Upload</label
-          >
-        </div>
-        <div class="flex justify-between mb-4 space-x-3">
-          <select class="rounded-lg bg-gray-200 py-2 text-gray-800 px-4">
-            <option value="Rp" selected>Rp</option>
-            <option value="USD">USD</option>
-            <option value="EUR">EUR</option>
-          </select>
-          <input
-            class="rounded-lg bg-gray-200 py-2 text-gray-800 px-4 flex-grow"
-            placeholder="Amount"
-            id="amount"
-            type="number"
-          />
-        </div>
-        <div class="mb-6 space-y-3">
-          <select
-            id="rencanaId"
-            class="rounded-lg w-full bg-gray-200 py-2 text-gray-800 px-3"
-          >
-            <option value="" selected disabled>Choose Id Rencana</option>
-          </select>
-          <select
-            id="accountId"
-            class="rounded-lg w-full bg-gray-200 py-2 text-gray-800 px-3"
-          >
-            <option value="" selected disabled>Choose Account SKKO</option>
-          </select>
-          <input
-            class="rounded-lg w-full bg-gray-200 py-2 text-gray-800 px-4 uppercase"
-            id="kegiatan"
-            placeholder="KEGIATAN"
-          />
-          <input
-            class="rounded-lg w-full bg-gray-200 py-2 text-gray-800 px-4 uppercase"
-            id="lpj"
-            placeholder="LPJ"
-          />
-        </div>
-        <div class="flex justify-center">
-          <button
-            class="flex justify-center items-center bg-green-500 h-12 rounded-full w-12"
-            id="submitButton"
-          >
-            <svg
-              class="text-white h-6 w-6"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-              xmlns="http://www.w3.org/2000/svg"
+            <img
+              id="preview"
+              alt="Preview"
+              class="hidden w-full h-full object-contain"
+            />
+            <video
+              id="video"
+              class="hidden w-full h-full object-contain"
+              autoplay
+              playsinline
+            ></video>
+            <!-- Placeholder Icon -->
+            <div
+              id="placeholder"
+              class="text-gray-400 flex flex-col items-center"
             >
-              <path
-                clip-rule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-7.39 7.39a1 1 0 01-1.32.083l-4.007-3.38a1 1 0 111.28-1.536l3.512 2.964 6.894-6.894a1 1 0 011.415 0z"
-                fill-rule="evenodd"
-              />
-            </svg>
-          </button>
+              <svg
+                class="w-16 h-16 mb-2"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 11.25v-4.5m0 0L9.75 8.25M12 6.75l2.25 1.5m-6 4.5h9a1.5 1.5 0 010 3h-9a1.5 1.5 0 010-3z"
+                ></path>
+              </svg>
+              <p class="text-sm">No image selected</p>
+            </div>
+          </div>
+          <!-- Loading Spinner -->
+          <div
+            id="loadingSpinner"
+            class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 hidden"
+          >
+            <div class="spinner"></div>
+          </div>
         </div>
-        <div class="flex justify-between mt-4 space-x-3">
+
+        <!-- Buttons -->
+        <div class="flex space-x-2 mb-4">
           <button
-            class="rounded-lg w-full bg-red-500 py-2 text-white"
+            id="scanButton"
+            class="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 focus:outline-none"
+          >
+            <span id="scanButtonText">Pindai Nota</span>
+          </button>
+          <input id="uploadInput" type="file" accept="image/*" class="hidden" />
+          <label
+            for="uploadInput"
+            class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-300"
+          >
+            Unggah Nota
+          </label>
+        </div>
+
+        <!-- Upload Barang Button -->
+        <div class="mb-4">
+          <input
+            id="uploadBarangInput"
+            type="file"
+            accept="image/*"
+            multiple
+            class="hidden"
+          />
+          <label
+            for="uploadBarangInput"
+            class="w-full bg-gray-200 text-gray-700 py-2 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-300"
+          >
+            Unggah Foto Barang
+          </label>
+        </div>
+
+        <!-- Form Fields -->
+        <div class="space-y-4">
+          <!-- Currency Selection -->
+          <div>
+            <label for="currencySelect" class="block text-gray-700 mb-1"
+              >Mata Uang</label
+            >
+            <select
+              id="currencySelect"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="IDR" selected>IDR</option>
+              <option value="USD">USD</option>
+            </select>
+          </div>
+          <!-- Amount Input -->
+          <div>
+            <label for="amountInput" class="block text-gray-700 mb-1"
+              >Jumlah</label
+            >
+            <div class="flex">
+              <span
+                class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm"
+              >
+                <span id="currencySymbol">Rp</span>
+              </span>
+              <input
+                id="amountInput"
+                type="number"
+                class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+          </div>
+          <div>
+            <label for="rencanaIdSelect" class="block text-gray-700 mb-1"
+              >ID Rencana</label
+            >
+            <select
+              id="rencanaIdSelect"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="" selected disabled>Pilih ID Rencana</option>
+            </select>
+          </div>
+          <div>
+            <label for="accountIdSelect" class="block text-gray-700 mb-1"
+              >Account SKKO</label
+            >
+            <select
+              id="accountIdSelect"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="" selected disabled>Pilih Akun SKKO</option>
+            </select>
+          </div>
+          <div>
+            <label for="kegiatanInput" class="block text-gray-700 mb-1"
+              >Kegiatan</label
+            >
+            <input
+              id="kegiatanInput"
+              type="text"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+          <div>
+            <label for="lpjInput" class="block text-gray-700 mb-1">LPJ</label>
+            <input
+              id="lpjInput"
+              type="text"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+        </div>
+
+        <!-- Submit and Reset Buttons -->
+        <div class="flex space-x-2 mt-6">
+          <button
             id="resetButton"
+            class="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 focus:outline-none"
           >
             Reset
           </button>
+          <button
+            id="submitButton"
+            class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 focus:outline-none"
+          >
+            Kirim
+          </button>
         </div>
-        <input type="hidden" id="filename" />
+
+        <!-- Hidden Input for Filename -->
+        <input type="hidden" id="filenameInput" />
+      </div>
+    </div>
+
+    <!-- Modal -->
+    <div
+      id="modal"
+      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden"
+    >
+      <div class="bg-white rounded-lg p-6 text-center max-w-sm mx-auto">
+        <p id="modalMessage" class="text-gray-800 mb-4"></p>
+        <button
+          id="modalClose"
+          class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 focus:outline-none"
+        >
+          Close
+        </button>
       </div>
     </div>
 
     <script>
+      // JavaScript Code
+
+      // Updated variable references
       const video = document.getElementById("video");
-      const uploadInput = document.getElementById("upload");
+      const uploadInput = document.getElementById("uploadInput");
+      const uploadBarangInput = document.getElementById("uploadBarangInput");
       const preview = document.getElementById("preview");
-      const scanButton = document.getElementById("scan");
+      const placeholder = document.getElementById("placeholder");
+      const scanButton = document.getElementById("scanButton");
+      const scanButtonText = document.getElementById("scanButtonText");
       const submitButton = document.getElementById("submitButton");
-      const rencanaIdSelect = document.getElementById("rencanaId");
-      const accountIdSelect = document.getElementById("accountId");
-      const amountInput = document.getElementById("amount");
-      const kegiatanInput = document.getElementById("kegiatan");
-      const lpjInput = document.getElementById("lpj");
-      // Get the reset button
+      const rencanaIdSelect = document.getElementById("rencanaIdSelect");
+      const accountIdSelect = document.getElementById("accountIdSelect");
+      const currencySelect = document.getElementById("currencySelect"); // New currency select
+      const currencySymbol = document.getElementById("currencySymbol"); // Currency symbol display
+      const amountInput = document.getElementById("amountInput");
+      const kegiatanInput = document.getElementById("kegiatanInput");
+      const lpjInput = document.getElementById("lpjInput");
       const resetButton = document.getElementById("resetButton");
+      const filenameInput = document.getElementById("filenameInput");
+      const loadingSpinner = document.getElementById("loadingSpinner");
+      const modal = document.getElementById("modal");
+      const modalMessage = document.getElementById("modalMessage");
+      const modalClose = document.getElementById("modalClose");
 
-      // Function to reset the form
-      resetButton.addEventListener("click", () => {
-        // Reset all input fields and selects
-        rencanaIdSelect.value = ""; // Reset dropdown
-        accountIdSelect.value = ""; // Reset dropdown
-        amountInput.value = ""; // Reset amount
-        kegiatanInput.value = ""; // Reset kegiatan
-        lpjInput.value = ""; // Reset lpj
-
-        // Reset the video and preview
-        if (photoTaken) {
-          preview.classList.add("hidden");
-          video.classList.remove("hidden");
-          scanButton.innerText = "Scan";
-          photoTaken = false;
-        }
-
-        uploadInput.value = ""; // Reset file input
-
-        // Optionally, restart the camera
-        startCamera();
-      });
-
+      let uploadedBarangFiles = []; // Array to store uploaded 'Barang' files
       let stream;
       let photoTaken = false;
 
+      // Function to show modal messages
+      function showModal(message) {
+        modalMessage.textContent = message;
+        modal.classList.remove("hidden");
+      }
+
+      // Close modal handler
+      modalClose.addEventListener("click", () => {
+        modal.classList.add("hidden");
+      });
+
+      // Function to start the camera
       function startCamera() {
-        // Attempt to start with the rear camera (facingMode: "environment")
         navigator.mediaDevices
           .getUserMedia({ video: { facingMode: "environment" } })
           .then((s) => {
             stream = s;
             video.srcObject = stream;
+            video.classList.remove("hidden");
+            placeholder.classList.add("hidden");
           })
           .catch((error) => {
             console.warn(
               "Rear camera not available, switching to front camera."
             );
-            // Fallback to front camera if rear camera is not available
             navigator.mediaDevices
               .getUserMedia({ video: { facingMode: "user" } })
               .then((s) => {
                 stream = s;
                 video.srcObject = stream;
+                video.classList.remove("hidden");
+                placeholder.classList.add("hidden");
               })
               .catch((err) => {
                 console.error("Camera access denied or not supported: ", err);
-                alert("Camera access is denied or not supported.");
+                showModal("Camera access is denied or not supported.");
+                placeholder.classList.remove("hidden");
               });
           });
-      }
-
-      async function requestPermissions() {
-        try {
-          const permissionStatus = await navigator.permissions.query({
-            name: "camera",
-          });
-
-          if (permissionStatus.state === "granted") {
-            startCamera();
-          } else if (permissionStatus.state === "prompt") {
-            await navigator.mediaDevices.getUserMedia({ video: true });
-            startCamera();
-          } else {
-            alert(
-              "Camera access is denied. Please allow camera access in your browser settings."
-            );
-          }
-        } catch (error) {
-          console.error("Error requesting camera permissions:", error);
-          alert("Error requesting camera permissions.");
-        }
       }
 
       // Start camera on page load
       window.onload = () => {
         startCamera();
         fetchData();
-        requestPermissions();
       };
 
       // Capture image or reset the camera
@@ -227,60 +326,80 @@
           canvas.width = video.videoWidth;
           canvas.height = video.videoHeight;
           canvas.getContext("2d").drawImage(video, 0, 0);
-          canvas.toBlob((blob) => {
-            processImageFile(blob); // Process the captured image
-          }, "image/png");
+          canvas.toBlob(
+            (blob) => {
+              processImageFile(blob); // Process the captured image
+            },
+            "image/png",
+            0.8
+          ); // Adjust quality if needed
 
           preview.src = canvas.toDataURL("image/png");
           preview.classList.remove("hidden");
           video.classList.add("hidden");
-          scanButton.innerText = "Scan Again";
+          scanButtonText.innerText = "Scan Again";
           photoTaken = true;
         } else {
           preview.classList.add("hidden");
           video.classList.remove("hidden");
-          scanButton.innerText = "Scan";
+          scanButtonText.innerText = "Scan Receipt";
           photoTaken = false;
         }
       }
 
-      // Handle file upload
-      uploadInput.addEventListener("change", async () => {
+      // Handle file upload for 'Upload Barang'
+      uploadBarangInput.addEventListener("change", () => {
+        const files = Array.from(uploadBarangInput.files);
+
+        if (files.length > 0) {
+          uploadedBarangFiles = files; // Store the selected files
+          showModal(`${files.length} files selected for 'Upload Barang'.`);
+        } else {
+          uploadedBarangFiles = [];
+        }
+      });
+
+      // Handle file upload for receipt
+      uploadInput.addEventListener("change", () => {
         const file = uploadInput.files[0];
 
-        const formData = new FormData();
-        formData.append("file", file); // 'file' should match the Flask 'request.files["file"]'
-
-        try {
-          const response = await fetch("/upload_file", {
-            method: "POST",
-            body: formData,
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-
-            document.getElementById("filename").value = data.filename;
-
-            if (data.extracted_text) {
-              const cleanedAmount = data.extracted_text.replace(/,/g, "");
-              amountInput.value = cleanedAmount;
-
-              // Force re-render if needed
-              setTimeout(() => {
-                amountInput.value = cleanedAmount;
-              }, 100);
-            } else {
-              alert("No extracted text found. Please try again.");
-            }
+        if (file) {
+          if (!file.type.startsWith("image/")) {
+            showModal("Please upload a valid image file.");
+            return;
           }
-        } catch (error) {
-          console.error("Error during upload:", error);
+
+          // Display the image preview
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            preview.src = e.target.result;
+            preview.classList.remove("hidden");
+            video.classList.add("hidden");
+            placeholder.classList.add("hidden");
+            photoTaken = true;
+            scanButtonText.innerText = "Scan Receipt";
+          };
+          reader.readAsDataURL(file);
+
+          // Process the uploaded image
+          processImageFile(file);
+        }
+      });
+
+      // Update currency symbol when currency changes
+      currencySelect.addEventListener("change", () => {
+        if (currencySelect.value === "IDR") {
+          currencySymbol.textContent = "Rp";
+        } else if (currencySelect.value === "USD") {
+          currencySymbol.textContent = "$";
         }
       });
 
       // Process image (send to backend for receipt scanning)
       async function processImageFile(file) {
+        // Show loading spinner
+        loadingSpinner.classList.remove("hidden");
+
         const formData = new FormData();
         formData.append("file", file); // Attach the image file
 
@@ -290,10 +409,12 @@
             body: formData,
           });
 
+          loadingSpinner.classList.add("hidden");
+
           const data = await response.json();
 
           // Store filename
-          document.getElementById("filename").value = data.filename;
+          filenameInput.value = data.filename;
 
           if (response.ok && data.extracted_text) {
             const cleanedAmount = data.extracted_text.replace(/,/g, "");
@@ -303,88 +424,140 @@
               amountInput.value = cleanedAmount;
             }, 100);
           } else {
-            alert("No total_value detected. Please try again.");
+            showModal("No total_value detected. Please try again.");
           }
         } catch (error) {
           console.error("Error processing image:", error);
-          alert("There was an error processing the image. Please try again.");
+          loadingSpinner.classList.add("hidden");
+          showModal(
+            "There was an error processing the image. Please try again."
+          );
         }
       }
 
       // Fetch 'Id Rencana' and 'Account SKKO' from backend
       async function fetchData() {
-        const idRencanaData = await fetch("/fetch_id_rencana").then((res) =>
-          res.json()
-        );
-        const accountSkkosData = await fetch("/fetch_account_skkos").then(
-          (res) => res.json()
-        );
+        try {
+          const idRencanaData = await fetch("/fetch_id_rencana").then((res) =>
+            res.json()
+          );
+          const accountSkkosData = await fetch("/fetch_account_skkos").then(
+            (res) => res.json()
+          );
 
-        idRencanaData.forEach((id) => {
-          const option = document.createElement("option");
-          option.value = id;
-          option.textContent = id;
-          rencanaIdSelect.appendChild(option);
-        });
+          idRencanaData.forEach((id) => {
+            const option = document.createElement("option");
+            option.value = id;
+            option.textContent = id;
+            rencanaIdSelect.appendChild(option);
+          });
 
-        accountSkkosData.forEach((account) => {
-          const option = document.createElement("option");
-          option.value = account;
-          option.textContent = account;
-          accountIdSelect.appendChild(option);
-        });
+          accountSkkosData.forEach((account) => {
+            const option = document.createElement("option");
+            option.value = account;
+            option.textContent = account;
+            accountIdSelect.appendChild(option);
+          });
+        } catch (error) {
+          console.error("Error fetching data:", error);
+          showModal("Error fetching dropdown data. Please try again.");
+        }
       }
 
       // Submit form data to the backend
       submitButton.addEventListener("click", async () => {
         const selectedIdRencana = rencanaIdSelect.value;
         const selectedAccountId = accountIdSelect.value;
+        const currency = currencySelect.value; // Get selected currency
         const totalAmount = amountInput.value;
         const kegiatan = kegiatanInput.value;
         const lpj = lpjInput.value;
-        const filename = document.getElementById("filename").value;
+        const filename = filenameInput.value;
 
         // Check for empty fields before submission
         if (
           !selectedIdRencana ||
           !selectedAccountId ||
+          !currency ||
           !totalAmount ||
           !kegiatan ||
           !lpj ||
           !filename
         ) {
-          alert("All fields are required!");
+          showModal("All fields are required!");
           return;
+        }
+
+        // Show loading spinner
+        loadingSpinner.classList.remove("hidden");
+
+        // Prepare form data
+        const formData = new FormData();
+        formData.append("rencana_id", selectedIdRencana);
+        formData.append("account_skkos_id", selectedAccountId);
+        formData.append("currency", currency); // Include currency
+        formData.append("amount", totalAmount);
+        formData.append("kegiatan", kegiatan);
+        formData.append("lpj", lpj);
+        formData.append("filename", filename);
+
+        // Append 'Barang' files to the form data
+        if (uploadedBarangFiles.length > 0) {
+          uploadedBarangFiles.forEach((file) => {
+            formData.append("barang_files", file);
+          });
         }
 
         try {
           const response = await fetch("/submit", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              rencana_id: selectedIdRencana,
-              account_skkos_id: selectedAccountId,
-              amount: totalAmount,
-              kegiatan: kegiatan,
-              lpj: lpj,
-              filename: filename,
-            }),
+            body: formData,
           });
+
+          loadingSpinner.classList.add("hidden");
 
           const result = await response.json();
 
           if (response.ok && result.success) {
-            alert("Data submitted successfully!");
+            showModal("Data submitted successfully!");
+            // Reset the form and variables
+            resetForm();
           } else {
-            alert(`Submission failed: ${result.message}`);
+            showModal(`Submission failed: ${result.message}`);
           }
         } catch (error) {
           console.error("Error during submission:", error);
-          alert("There was an error during submission. Please try again.");
+          loadingSpinner.classList.add("hidden");
+          showModal("There was an error during submission. Please try again.");
         }
       });
+
+      // Reset form function
+      function resetForm() {
+        rencanaIdSelect.value = "";
+        accountIdSelect.value = "";
+        currencySelect.value = "IDR"; // Reset currency to default
+        currencySymbol.textContent = "Rp"; // Reset symbol to default
+        amountInput.value = "";
+        kegiatanInput.value = "";
+        lpjInput.value = "";
+        filenameInput.value = "";
+        uploadedBarangFiles = [];
+        uploadBarangInput.value = "";
+        uploadInput.value = "";
+
+        if (photoTaken) {
+          preview.classList.add("hidden");
+          video.classList.remove("hidden");
+          scanButtonText.innerText = "Scan Receipt";
+          photoTaken = false;
+        }
+
+        // Restart the camera
+        startCamera();
+      }
+
+      resetButton.addEventListener("click", resetForm);
     </script>
   </body>
 </html>
