@@ -223,7 +223,7 @@
       </div>
     </div>
 
-    <!-- Modal -->
+    <!-- Modal for general messages -->
     <div
       id="modal"
       class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden"
@@ -236,6 +236,33 @@
         >
           Close
         </button>
+      </div>
+    </div>
+
+    <!-- Modal for Rencana Details -->
+    <div
+      id="rencanaModal"
+      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden"
+    >
+      <div class="bg-white rounded-lg p-6 text-center max-w-sm mx-auto">
+        <h2 class="text-xl font-semibold mb-4">Detail Rencana</h2>
+        <div id="rencanaDetails" class="text-gray-800 mb-4">
+          <!-- Details will be populated here -->
+        </div>
+        <div class="flex justify-center space-x-4">
+          <button
+            id="rencanaNoButton"
+            class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 focus:outline-none"
+          >
+            NO
+          </button>
+          <button
+            id="rencanaYesButton"
+            class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 focus:outline-none"
+          >
+            YES
+          </button>
+        </div>
       </div>
     </div>
 
@@ -264,6 +291,10 @@
       const modal = document.getElementById("modal");
       const modalMessage = document.getElementById("modalMessage");
       const modalClose = document.getElementById("modalClose");
+      const rencanaModal = document.getElementById("rencanaModal");
+      const rencanaDetailsDiv = document.getElementById("rencanaDetails");
+      const rencanaNoButton = document.getElementById("rencanaNoButton");
+      const rencanaYesButton = document.getElementById("rencanaYesButton");
 
       let uploadedBarangFiles = []; // Array to store uploaded 'Barang' files
       let stream;
@@ -337,12 +368,12 @@
           preview.src = canvas.toDataURL("image/png");
           preview.classList.remove("hidden");
           video.classList.add("hidden");
-          scanButtonText.innerText = "Scan Again";
+          scanButtonText.innerText = "Pindai Lagi";
           photoTaken = true;
         } else {
           preview.classList.add("hidden");
           video.classList.remove("hidden");
-          scanButtonText.innerText = "Scan Receipt";
+          scanButtonText.innerText = "Pindai Lagi";
           photoTaken = false;
         }
       }
@@ -377,7 +408,7 @@
             video.classList.add("hidden");
             placeholder.classList.add("hidden");
             photoTaken = true;
-            scanButtonText.innerText = "Scan Receipt";
+            scanButtonText.innerText = "Pindai Lagi";
           };
           reader.readAsDataURL(file);
 
@@ -463,6 +494,56 @@
           showModal("Error fetching dropdown data. Please try again.");
         }
       }
+
+      // Event listener for 'ID Rencana' selection
+      rencanaIdSelect.addEventListener("change", handleRencanaIdChange);
+
+      async function handleRencanaIdChange() {
+        const selectedIdRencana = rencanaIdSelect.value;
+
+        // Fetch the details for the selected ID Rencana
+        try {
+          const response = await fetch(
+            `/get_rencana_details?rencana_id=${encodeURIComponent(
+              selectedIdRencana
+            )}`
+          );
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          const data = await response.json();
+
+          // Display the details in the modal
+          rencanaDetailsDiv.innerHTML = `
+      <p><strong>Start Date LPJ:</strong> ${data.start_date_lpj}</p>
+      <p><strong>End Date LPJ:</strong> ${data.end_date_lpj}</p>
+      <p><strong>Requestor:</strong> ${data.requestor}</p>
+      <p><strong>Unit:</strong> ${data.unit}</p>
+      <p><strong>Nominal:</strong> ${data.nominal}</p>
+      <p><strong>ID Rencana:</strong> ${data.id_rencana}</p>
+    `;
+
+          // Show the modal
+          rencanaModal.classList.remove("hidden");
+        } catch (error) {
+          console.error("Error fetching Rencana details:", error);
+          showModal("Error fetching Rencana details. Please try again.");
+        }
+      }
+
+      // Handle NO and YES buttons in the modal
+      rencanaNoButton.addEventListener("click", () => {
+        // Reset the ID Rencana selection
+        rencanaIdSelect.value = "";
+        // Hide the modal
+        rencanaModal.classList.add("hidden");
+      });
+
+      rencanaYesButton.addEventListener("click", () => {
+        // Proceed with the selected ID Rencana
+        // Hide the modal
+        rencanaModal.classList.add("hidden");
+      });
 
       // Submit form data to the backend
       submitButton.addEventListener("click", async () => {

@@ -54,7 +54,47 @@ if not os.path.exists(UPLOAD_FOLDER):
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 # ------------------------ Helper Functions ------------------------ #
+
+
+def init_gspread_client():
+    scope = SCOPES
+    creds = ServiceAccountCredentials.from_json_keyfile_name(
+        GOOGLE_CREDENTIALS_PATH, scope
+    )
+    client = gspread.authorize(creds)
+    return client
+
+
+def get_rencana_details_from_sheet(rencana_id):
+    client = init_gspread_client()
+    sheet = client.open_by_key(GOOGLE_SHEET_ID).worksheet("RENCANA")
+
+    # Get all records
+    records = sheet.get_all_records()
+
+    if not records:
+        raise Exception("No records found in the RENCANA sheet.")
+
+    for record in records:
+        id_value = record.get("id rencana", "")
+        if id_value != "":
+            try:
+                id_int = int(id_value)
+                record_id = f"{id_int:05d}"
+            except ValueError:
+                record_id = str(id_value).strip()
+            if record_id == str(rencana_id).strip():
+                return {
+                    "start_date_lpj": record.get("start date LPJ", ""),
+                    "end_date_lpj": record.get("end date LPJ", ""),
+                    "requestor": record.get("Requestor", ""),
+                    "unit": record.get("Unit", ""),
+                    "nominal": record.get("Nominal", ""),
+                    "id_rencana": record_id,
+                }
+    raise Exception("ID Rencana not found")
 
 
 # Function to generate a unique temporary filename
@@ -79,11 +119,7 @@ def set_google_credentials(json_path):
 
 # Initialize the Google Sheets API client
 def get_google_sheet():
-    scope = SCOPES
-    creds = ServiceAccountCredentials.from_json_keyfile_name(
-        GOOGLE_CREDENTIALS_PATH, scope
-    )
-    client = gspread.authorize(creds)
+    client = init_gspread_client()
     return client.open_by_key(GOOGLE_SHEET_ID).worksheet("REKAPREALISASI")
 
 
@@ -224,6 +260,16 @@ def upload_to_google_drive(file_path, folder_id=None):
 def index():
     """Render the main index page."""
     return render_template("index.html")
+
+
+@app.route("/get_rencana_details")
+def get_rencana_details():
+    rencana_id = request.args.get("rencana_id")
+    try:
+        data = get_rencana_details_from_sheet(rencana_id)
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/upload_file", methods=["POST"])
@@ -450,7 +496,27 @@ def submit_data():
 def fetch_id_rencana():
     """Fetch 'Id Rencana' from the Google Sheet."""
     try:
-        id_rencana_data = query_from_sheet("RENCANA", 7)  # Column G of 'RENCANA'
+        client = init_gspread_client()
+        sheet = client.open_by_key(GOOGLE_SHEET_ID).worksheet("RENCANA")
+        records = sheet.get_all_records()
+
+        id_rencana_data = []
+        for record in records:
+            id_value = record.get("id rencana", "")
+            if id_value != "":
+                # Convert to integer if possible
+                try:
+                    id_int = int(id_value)
+                    # Format with leading zeros (e.g., 00001)
+                    id_str = f"{id_int:05d}"
+                except ValueError:
+                    # If conversion fails, use the string as is
+                    id_str = str(id_value).strip()
+                id_rencana_data.append(id_str)
+
+        # Debugging statement
+        print("id_rencana_data:", id_rencana_data)
+
         return jsonify(id_rencana_data), 200
     except Exception as e:
         app.logger.error(f"Error fetching Id Rencana: {str(e)}", exc_info=True)
