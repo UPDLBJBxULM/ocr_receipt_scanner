@@ -157,6 +157,7 @@
                 id="amountInput"
                 type="number"
                 class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                readonly
               />
             </div>
           </div>
@@ -212,14 +213,16 @@
           </button>
           <button
             id="submitButton"
-            class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 focus:outline-none"
+            class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 focus:outline-none disabled:opacity-50"
+            disabled
           >
             Kirim
           </button>
         </div>
 
-        <!-- Hidden Input for Filename -->
-        <input type="hidden" id="filenameInput" />
+        <!-- Hidden Inputs for Links -->
+        <input type="hidden" id="receiptLinkInput" name="receipt_link" />
+        <input type="hidden" id="evidenceLinksInput" name="evidence_links" />
       </div>
     </div>
 
@@ -286,7 +289,8 @@
       const kegiatanInput = document.getElementById("kegiatanInput");
       const lpjInput = document.getElementById("lpjInput");
       const resetButton = document.getElementById("resetButton");
-      const filenameInput = document.getElementById("filenameInput");
+      const receiptLinkInput = document.getElementById("receiptLinkInput");
+      const evidenceLinksInput = document.getElementById("evidenceLinksInput");
       const loadingSpinner = document.getElementById("loadingSpinner");
       const modal = document.getElementById("modal");
       const modalMessage = document.getElementById("modalMessage");
@@ -359,7 +363,7 @@
           canvas.getContext("2d").drawImage(video, 0, 0);
           canvas.toBlob(
             (blob) => {
-              processImageFile(blob); // Process the captured image
+              processReceiptImage(blob); // Process the captured image
             },
             "image/png",
             0.8
@@ -373,7 +377,7 @@
         } else {
           preview.classList.add("hidden");
           video.classList.remove("hidden");
-          scanButtonText.innerText = "Pindai Lagi";
+          scanButtonText.innerText = "Pindai Nota";
           photoTaken = false;
         }
       }
@@ -384,7 +388,7 @@
 
         if (files.length > 0) {
           uploadedBarangFiles = files; // Store the selected files
-          showModal(`${files.length} files selected for 'Upload Barang'.`);
+          showModal(`${files.length} file(s) selected for 'Upload Barang'.`);
         } else {
           uploadedBarangFiles = [];
         }
@@ -413,7 +417,7 @@
           reader.readAsDataURL(file);
 
           // Process the uploaded image
-          processImageFile(file);
+          processReceiptImage(file);
         }
       });
 
@@ -426,10 +430,11 @@
         }
       });
 
-      // Process image (send to backend for receipt scanning)
-      async function processImageFile(file) {
+      // Process receipt image (upload to backend and extract total_value)
+      async function processReceiptImage(file) {
         // Show loading spinner
         loadingSpinner.classList.remove("hidden");
+        submitButton.disabled = true; // Disable the submit button until upload is complete
 
         const formData = new FormData();
         formData.append("file", file); // Attach the image file
@@ -444,25 +449,29 @@
 
           const data = await response.json();
 
-          // Store filename
-          filenameInput.value = data.filename;
-
-          if (response.ok && data.extracted_text) {
-            const cleanedAmount = data.extracted_text.replace(/,/g, "");
+          if (response.ok && data.extracted_text && data.receipt_link) {
+            const cleanedAmount = data.extracted_text.replace(/,/g, "").trim();
             amountInput.value = cleanedAmount;
-
-            setTimeout(() => {
-              amountInput.value = cleanedAmount;
-            }, 100);
+            receiptLinkInput.value = data.receipt_link;
+            showModal("Receipt processed and uploaded successfully!");
+            submitButton.disabled = false; // Enable the submit button
+          } else if (response.ok && !data.extracted_text && data.receipt_link) {
+            receiptLinkInput.value = data.receipt_link;
+            showModal(
+              "Receipt uploaded successfully, but no total_value detected."
+            );
+            submitButton.disabled = false; // Enable the submit button
           } else {
-            showModal("No total_value detected. Please try again.");
+            showModal(`Error: ${data.error || "Unknown error occurred."}`);
+            submitButton.disabled = true; // Keep the submit button disabled
           }
         } catch (error) {
-          console.error("Error processing image:", error);
+          console.error("Error processing receipt:", error);
           loadingSpinner.classList.add("hidden");
           showModal(
-            "There was an error processing the image. Please try again."
+            "There was an error processing the receipt. Please try again."
           );
+          submitButton.disabled = true; // Keep the submit button disabled
         }
       }
 
@@ -515,13 +524,13 @@
 
           // Display the details in the modal
           rencanaDetailsDiv.innerHTML = `
-      <p><strong>Start Date LPJ:</strong> ${data.start_date_lpj}</p>
-      <p><strong>End Date LPJ:</strong> ${data.end_date_lpj}</p>
-      <p><strong>Requestor:</strong> ${data.requestor}</p>
-      <p><strong>Unit:</strong> ${data.unit}</p>
-      <p><strong>Nominal:</strong> ${data.nominal}</p>
-      <p><strong>ID Rencana:</strong> ${data.id_rencana}</p>
-    `;
+            <p><strong>Start Date LPJ:</strong> ${data.start_date_lpj}</p>
+            <p><strong>End Date LPJ:</strong> ${data.end_date_lpj}</p>
+            <p><strong>Requestor:</strong> ${data.requestor}</p>
+            <p><strong>Unit:</strong> ${data.unit}</p>
+            <p><strong>Nominal:</strong> ${data.nominal}</p>
+            <p><strong>ID Rencana:</strong> ${data.id_rencana}</p>
+          `;
 
           // Show the modal
           rencanaModal.classList.remove("hidden");
@@ -553,7 +562,8 @@
         const totalAmount = amountInput.value;
         const kegiatan = kegiatanInput.value;
         const lpj = lpjInput.value;
-        const filename = filenameInput.value;
+        const receiptLink = receiptLinkInput.value;
+        const evidenceFiles = uploadedBarangFiles;
 
         // Check for empty fields before submission
         if (
@@ -563,7 +573,7 @@
           !totalAmount ||
           !kegiatan ||
           !lpj ||
-          !filename
+          !receiptLink
         ) {
           showModal("All fields are required!");
           return;
@@ -571,28 +581,80 @@
 
         // Show loading spinner
         loadingSpinner.classList.remove("hidden");
+        submitButton.disabled = true; // Disable the submit button to prevent multiple submissions
 
-        // Prepare form data
-        const formData = new FormData();
-        formData.append("rencana_id", selectedIdRencana);
-        formData.append("account_skkos_id", selectedAccountId);
-        formData.append("currency", currency); // Include currency
-        formData.append("amount", totalAmount);
-        formData.append("kegiatan", kegiatan);
-        formData.append("lpj", lpj);
-        formData.append("filename", filename);
-
-        // Append 'Barang' files to the form data
-        if (uploadedBarangFiles.length > 0) {
-          uploadedBarangFiles.forEach((file) => {
-            formData.append("barang_files", file);
+        // Upload evidence files to backend
+        let evidenceLinks = [];
+        if (evidenceFiles.length > 0) {
+          const evidenceFormData = new FormData();
+          evidenceFiles.forEach((file) => {
+            evidenceFormData.append("files", file, file.name);
           });
+
+          try {
+            const evidenceResponse = await fetch("/upload_evidence", {
+              method: "POST",
+              body: evidenceFormData,
+            });
+
+            if (evidenceResponse.status === 207) {
+              // Partial success
+              const evidenceData = await evidenceResponse.json();
+              evidenceLinks = evidenceData.evidence_links;
+              const failedFiles = evidenceData.failed_files;
+              showModal(
+                `Some evidence files failed to upload: ${failedFiles
+                  .map((f) => `${f.filename} (${f.reason})`)
+                  .join(", ")}`
+              );
+            } else if (evidenceResponse.ok) {
+              const evidenceData = await evidenceResponse.json();
+              evidenceLinks = evidenceData.evidence_links;
+              if (
+                evidenceData.failed_files &&
+                evidenceData.failed_files.length > 0
+              ) {
+                const failedFiles = evidenceData.failed_files;
+                showModal(
+                  `Some evidence files failed to upload: ${failedFiles
+                    .map((f) => `${f.filename} (${f.reason})`)
+                    .join(", ")}`
+                );
+              } else {
+                showModal("Evidence files uploaded successfully!");
+              }
+            } else {
+              const evidenceData = await evidenceResponse.json();
+              throw new Error(
+                evidenceData.error || "Failed to upload evidence files."
+              );
+            }
+          } catch (error) {
+            console.error("Error uploading evidence files:", error);
+            loadingSpinner.classList.add("hidden");
+            showModal(
+              `There was an error uploading evidence files: ${error.message}. Please try again.`
+            );
+            submitButton.disabled = false; // Re-enable the submit button
+            return;
+          }
         }
+
+        // Prepare data to send to the backend
+        const payload = new FormData();
+        payload.append("rencana_id", selectedIdRencana);
+        payload.append("account_skkos_id", selectedAccountId);
+        payload.append("currency", currency);
+        payload.append("amount", totalAmount);
+        payload.append("kegiatan", kegiatan);
+        payload.append("lpj", lpj);
+        payload.append("receipt_link", receiptLink);
+        payload.append("evidence_links", evidenceLinks.join(", "));
 
         try {
           const response = await fetch("/submit", {
             method: "POST",
-            body: formData,
+            body: payload,
           });
 
           loadingSpinner.classList.add("hidden");
@@ -610,6 +672,8 @@
           console.error("Error during submission:", error);
           loadingSpinner.classList.add("hidden");
           showModal("There was an error during submission. Please try again.");
+        } finally {
+          submitButton.disabled = false; // Re-enable the submit button
         }
       });
 
@@ -622,7 +686,8 @@
         amountInput.value = "";
         kegiatanInput.value = "";
         lpjInput.value = "";
-        filenameInput.value = "";
+        receiptLinkInput.value = "";
+        evidenceLinksInput.value = "";
         uploadedBarangFiles = [];
         uploadBarangInput.value = "";
         uploadInput.value = "";
@@ -630,7 +695,7 @@
         if (photoTaken) {
           preview.classList.add("hidden");
           video.classList.remove("hidden");
-          scanButtonText.innerText = "Scan Receipt";
+          scanButtonText.innerText = "Pindai Nota";
           photoTaken = false;
         }
 
