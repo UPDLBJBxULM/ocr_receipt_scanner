@@ -1,32 +1,33 @@
-from flask import Flask, request, jsonify, render_template
 import os
 import cv2
-from ultralytics import YOLO
-from google.cloud import vision
-import numpy as np
+import glob
+import uuid
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-from werkzeug.utils import secure_filename
-from datetime import datetime, timedelta
+import logging
 import requests
 import mimetypes
-import uuid
-import glob
-import logging
+import numpy as np
+from ultralytics import YOLO
+from dotenv import load_dotenv
+from google.cloud import vision
+from datetime import datetime, timedelta
+from werkzeug.utils import secure_filename
+from flask import Flask, request, jsonify, render_template
+from oauth2client.service_account import ServiceAccountCredentials
 
 # ------------------------ Configuration ------------------------ #
 
-# External API Endpoints
-RECEIPT_API_ENDPOINT = "https://fh0kd5s9-3000.asse.devtunnels.ms/api/receipt"
-EVIDENCE_API_ENDPOINT = "https://fh0kd5s9-3000.asse.devtunnels.ms/api/evidence"
+# Receipt API configuration
+RECEIPT_API_ENDPOINT = os.getenv("RECEIPT_API_ENDPOINT")
 
-# Path to your YOLOv8 model
-YOLO_MODEL_PATH = "C:/Users/ZAINAL/Desktop/Receipt_Scanner/models/best.pt"
+# Evidence API configuration
+EVIDENCE_API_ENDPOINT = os.getenv("EVIDENCE_API_ENDPOINT")
 
-# Path to the Google Cloud service account credentials
-GOOGLE_CREDENTIALS_PATH = (
-    "C:/Users/ZAINAL/Desktop/Receipt_Scanner/credentials/new_key.json"
-)
+# YOLO Model Path
+YOLO_MODEL_PATH = os.getenv("YOLO_MODEL_PATH")
+
+# Google Credentials Path
+GOOGLE_CREDENTIALS_PATH = os.getenv("GOOGLE_CREDENTIALS_PATH")
 
 # Define the scope for the Google Sheets and Google Drive API
 SCOPES = [
@@ -35,13 +36,16 @@ SCOPES = [
 ]
 
 # Google Sheets configuration
-GOOGLE_SHEET_ID = "1QFVJtpfC7E3WomzZCnmsl4ObeMToNSoY4vuGQ_oPj4s"
+GOOGLE_SHEET_ID = os.getenv("GOOGLE_SHEET_ID")
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Set up Flask app
 app = Flask(__name__)
 UPLOAD_FOLDER = "./uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # Limit file uploads to 16MB
+app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024  # Limit file uploads to 16MB
 
 # Ensure the upload directory exists
 if not os.path.exists(UPLOAD_FOLDER):
