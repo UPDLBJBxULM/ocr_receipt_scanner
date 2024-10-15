@@ -351,6 +351,12 @@ def get_suggestions():
 def upload_file():
     """Handle receipt file upload, extract total_value, and upload to Receipt API."""
     try:
+
+        # **Extract 'accountSKKO' from form data**
+        account_skkos = request.form.get("accountSKKO")
+        if not account_skkos:
+            return jsonify({"error": "Account SKKO is required."}), 400
+
         if "file" not in request.files:
             return jsonify({"error": "No file part"}), 400
 
@@ -400,6 +406,13 @@ def upload_file():
                 extracted_text = extract_text_from_image(cropped_img)
                 logger.info(f"Extracted Text: {extracted_text}")
 
+                # **Prepare additional data to send to Receipt API**
+                payload = {
+                    "accountSKKO": account_skkos,  # Include the account ID
+                    "extracted_text": extracted_text,
+                    # Add other fields if necessary
+                }
+
                 # Upload the receipt to the external Receipt API
                 with open(file_path, "rb") as receipt_file:
                     files = {
@@ -410,7 +423,9 @@ def upload_file():
                         )
                     }
                     receipt_api_response = requests.post(
-                        RECEIPT_API_ENDPOINT, files=files
+                        RECEIPT_API_ENDPOINT,
+                        data=payload,  # Send payload as form data
+                        files=files,
                     )
 
                 if receipt_api_response.status_code == 200:
@@ -424,6 +439,7 @@ def upload_file():
                                 {
                                     "extracted_text": extracted_text,
                                     "receipt_link": receipt_link,
+                                    "accountSKKO": account_skkos,  # Optionally return it
                                 }
                             ),
                             200,
@@ -467,6 +483,12 @@ def upload_file():
 @app.route("/upload_evidence", methods=["POST"])
 def upload_evidence():
     """Handle evidence files upload and return their links."""
+
+    # **Extract 'accountSKKO' from form data**
+    account_skkos = request.form.get("accountSKKO")
+    if not account_skkos:
+        return jsonify({"error": "Account SKKO is required for evidence upload."}), 400
+
     try:
         if "files" not in request.files:
             return jsonify({"error": "No files part"}), 400
@@ -484,18 +506,16 @@ def upload_evidence():
         for file in files:
             if file.filename == "":
                 logger.warning("Skipped a file with no filename.")
-                failed_files.append({
-                    "filename": file.filename,
-                    "reason": "No filename provided."
-                })
+                failed_files.append(
+                    {"filename": file.filename, "reason": "No filename provided."}
+                )
                 continue  # Skip files with no name
 
             if not file.content_type.startswith("image/"):
                 logger.warning(f"Skipped non-image file: {file.filename}")
-                failed_files.append({
-                    "filename": file.filename,
-                    "reason": "Invalid file type."
-                })
+                failed_files.append(
+                    {"filename": file.filename, "reason": "Invalid file type."}
+                )
                 continue  # Skip non-image files
 
             # Validate file size (e.g., max 5MB per file)
@@ -503,10 +523,9 @@ def upload_evidence():
             file_length = file.tell()
             if file_length > 5 * 1024 * 1024:
                 logger.warning(f"Skipped file exceeding size limit: {file.filename}")
-                failed_files.append({
-                    "filename": file.filename,
-                    "reason": "File size exceeds limit."
-                })
+                failed_files.append(
+                    {"filename": file.filename, "reason": "File size exceeds limit."}
+                )
                 continue  # Skip files exceeding size limit
             file.seek(0)
 
@@ -517,14 +536,26 @@ def upload_evidence():
 
             # Append to the files_payload with the correct field name "files"
             files_payload.append(
-                ("files", (secure_filename(file.filename), open(file_path, "rb"), file.content_type))
+                (
+                    "files",
+                    (
+                        secure_filename(file.filename),
+                        open(file_path, "rb"),
+                        file.content_type,
+                    ),
+                )
             )
 
         if not files_payload:
-            return jsonify({
-                "error": "No valid evidence files to upload.",
-                "failed_files": failed_files
-            }), 400
+            return (
+                jsonify(
+                    {
+                        "error": "No valid evidence files to upload.",
+                        "failed_files": failed_files,
+                    }
+                ),
+                400,
+            )
 
         # Upload to Evidence API
         try:
@@ -533,13 +564,22 @@ def upload_evidence():
                 # "Authorization": "Bearer YOUR_API_TOKEN"  # Uncomment and set if needed
             }
 
+            # **Include 'accountSKKO' in the data payload**
+            data_payload = {
+                "accountSKKO": account_skkos,  # Add accountSKKO to payload
+                # Add other fields if required by the Evidence API
+            }
+
             evidence_api_response = requests.post(
                 EVIDENCE_API_ENDPOINT,
+                data=data_payload,
                 files=files_payload,
-                headers=headers
+                headers=headers,
             )
 
-            logger.info(f"Evidence API responded with status code {evidence_api_response.status_code}")
+            logger.info(
+                f"Evidence API responded with status code {evidence_api_response.status_code}"
+            )
 
             if evidence_api_response.status_code == 200:
                 try:
@@ -557,86 +597,120 @@ def upload_evidence():
                                 if file_link:
                                     evidence_links.append(file_link)
                                 else:
-                                    logger.error("Missing 'fileLink' in Evidence API response item.")
-                                    failed_files.append({
-                                        "filename": "Unknown",
-                                        "reason": "Missing 'fileLink' in response."
-                                    })
+                                    logger.error(
+                                        "Missing 'fileLink' in Evidence API response item."
+                                    )
+                                    failed_files.append(
+                                        {
+                                            "filename": "Unknown",
+                                            "reason": "Missing 'fileLink' in response.",
+                                        }
+                                    )
                         elif isinstance(data, dict):
                             file_link = data.get("fileLink")
                             if file_link:
                                 evidence_links.append(file_link)
                             else:
-                                logger.error("Missing 'fileLink' in Evidence API response.")
-                                failed_files.append({
-                                    "filename": "Unknown",
-                                    "reason": "Missing 'fileLink' in response."
-                                })
+                                logger.error(
+                                    "Missing 'fileLink' in Evidence API response."
+                                )
+                                failed_files.append(
+                                    {
+                                        "filename": "Unknown",
+                                        "reason": "Missing 'fileLink' in response.",
+                                    }
+                                )
                         else:
-                            logger.error("Unexpected 'data' format in Evidence API response.")
-                            failed_files.append({
-                                "filename": "Unknown",
-                                "reason": "Unexpected 'data' format in response."
-                            })
+                            logger.error(
+                                "Unexpected 'data' format in Evidence API response."
+                            )
+                            failed_files.append(
+                                {
+                                    "filename": "Unknown",
+                                    "reason": "Unexpected 'data' format in response.",
+                                }
+                            )
                     else:
-                        error_message = evidence_api_data.get("message", "Unknown error from Evidence API.")
+                        error_message = evidence_api_data.get(
+                            "message", "Unknown error from Evidence API."
+                        )
                         logger.error(f"Evidence API failed: {error_message}")
                         for file_tuple in files_payload:
-                            failed_files.append({
-                                "filename": file_tuple[1][0],
-                                "reason": error_message
-                            })
+                            failed_files.append(
+                                {"filename": file_tuple[1][0], "reason": error_message}
+                            )
                 except ValueError:
                     logger.error("Evidence API returned a non-JSON response.")
                     for file_tuple in files_payload:
-                        failed_files.append({
-                            "filename": file_tuple[1][0],
-                            "reason": "Non-JSON response from Evidence API."
-                        })
+                        failed_files.append(
+                            {
+                                "filename": file_tuple[1][0],
+                                "reason": "Non-JSON response from Evidence API.",
+                            }
+                        )
             else:
-                logger.error(f"Evidence API responded with status code {evidence_api_response.status_code}")
+                logger.error(
+                    f"Evidence API responded with status code {evidence_api_response.status_code}"
+                )
                 for file_tuple in files_payload:
-                    failed_files.append({
-                        "filename": file_tuple[1][0],
-                        "reason": f"Evidence API responded with status code {evidence_api_response.status_code}"
-                    })
+                    failed_files.append(
+                        {
+                            "filename": file_tuple[1][0],
+                            "reason": f"Evidence API responded with status code {evidence_api_response.status_code}",
+                        }
+                    )
         except Exception as e:
-            logger.error(f"Exception during upload to Evidence API: {str(e)}", exc_info=True)
+            logger.error(
+                f"Exception during upload to Evidence API: {str(e)}", exc_info=True
+            )
             for file_tuple in files_payload:
-                failed_files.append({
-                    "filename": file_tuple[1][0],
-                    "reason": "Exception during upload."
-                })
+                failed_files.append(
+                    {"filename": file_tuple[1][0], "reason": "Exception during upload."}
+                )
         finally:
             # Close all opened files and remove temporary files
             for _, file_tuple in files_payload:
                 file_handle = file_tuple[1]
                 file_handle.close()
-                temp_file_path = os.path.join(app.config["UPLOAD_FOLDER"], file_tuple[0])
+                temp_file_path = os.path.join(
+                    app.config["UPLOAD_FOLDER"], file_tuple[0]
+                )
                 if os.path.exists(temp_file_path):
                     os.remove(temp_file_path)
 
         if len(evidence_links) == len(files_payload):
             # All files uploaded successfully
-            return jsonify({
-                "status": "success",
-                "evidence_links": evidence_links
-            }), 200
+            return jsonify({"status": "success", "evidence_links": evidence_links}), 200
         elif len(evidence_links) > 0:
             # Some files uploaded successfully
-            return jsonify({
-                "status": "partial_success",
-                "evidence_links": evidence_links,
-                "failed_files": failed_files
-            }), 206  # HTTP 206 Partial Content
+            return (
+                jsonify(
+                    {
+                        "status": "partial_success",
+                        "evidence_links": evidence_links,
+                        "failed_files": failed_files,
+                    }
+                ),
+                206,
+            )  # HTTP 206 Partial Content
         else:
             # No files uploaded successfully
-            return jsonify({
-                "error": "Failed to upload any evidence files.",
-                "failed_files": failed_files
-            }), 500
+            return (
+                jsonify(
+                    {
+                        "error": "Failed to upload any evidence files.",
+                        "failed_files": failed_files,
+                    }
+                ),
+                500,
+            )
     except Exception as e:
         logger.error(f"Error in upload_evidence: {str(e)}", exc_info=True)
-        return jsonify({"error": "An unexpected error occurred during evidence upload."}), 500
+        return (
+            jsonify({"error": "An unexpected error occurred during evidence upload."}),
+            500,
+        )
+
+
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5151)

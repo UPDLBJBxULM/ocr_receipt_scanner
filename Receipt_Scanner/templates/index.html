@@ -178,6 +178,7 @@
             >
             <select
               id="accountIdSelect"
+              name="accountSKKO"
               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="" selected disabled>Pilih Akun SKKO</option>
@@ -439,6 +440,17 @@
         const formData = new FormData();
         formData.append("file", file); // Attach the image file
 
+        // **Append the selected `accountSKKO` to FormData**
+        const selectedAccountSKKO = accountIdSelect.value;
+        if (!selectedAccountSKKO) {
+          showModal(
+            "Please select an Account SKKO before uploading the receipt."
+          );
+          loadingSpinner.classList.add("hidden");
+          return;
+        }
+        formData.append("accountSKKO", selectedAccountSKKO); // Append the selected account
+
         try {
           const response = await fetch("/upload_file", {
             method: "POST",
@@ -590,7 +602,15 @@
           evidenceFiles.forEach((file) => {
             evidenceFormData.append("files", file, file.name);
           });
-
+          // **Append the selected `accountSKKO` to FormData**
+          const selectedAccountSKKO = accountIdSelect.value;
+          if (!selectedAccountSKKO) {
+            showModal(
+              "Please select an Account SKKO before uploading evidence files."
+            );
+            return;
+          }
+          evidenceFormData.append("accountSKKO", selectedAccountSKKO); // Append accountSKKO
           try {
             const evidenceResponse = await fetch("/upload_evidence", {
               method: "POST",
