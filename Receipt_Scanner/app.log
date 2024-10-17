@@ -1,0 +1,238 @@
+2024-10-15 13:32:11,277 [INFO] __main__: YOLO model and Google credentials initialized successfully.
+2024-10-15 13:33:47,118 [INFO] __main__: YOLO model and Google credentials initialized successfully.
+2024-10-15 13:33:47,155 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5151
+ * Running on http://192.168.99.75:5151
+2024-10-15 13:33:47,156 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
+2024-10-15 13:34:18,022 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:34:18] "GET / HTTP/1.1" 200 -
+2024-10-15 13:34:23,886 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:34:23] "GET /fetch_id_rencana HTTP/1.1" 200 -
+2024-10-15 13:34:23,906 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:34:23] "GET /fetch_account_skkos HTTP/1.1" 200 -
+2024-10-15 13:34:49,920 [ERROR] __main__: ID Rencana '15/10/2024 12:12:12' not found.
+2024-10-15 13:34:49,922 [ERROR] __main__: ValueError: ID Rencana not found
+2024-10-15 13:34:49,926 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:34:49] "[33mGET /get_rencana_details?rencana_id=15/10/2024%2012:12:12 HTTP/1.1[0m" 404 -
+2024-10-15 13:34:58,870 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:34:58] "GET / HTTP/1.1" 200 -
+2024-10-15 13:35:01,869 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:35:01] "GET /fetch_id_rencana HTTP/1.1" 200 -
+2024-10-15 13:35:01,961 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:35:01] "GET /fetch_account_skkos HTTP/1.1" 200 -
+2024-10-15 13:37:36,379 [INFO] __main__: YOLO model and Google credentials initialized successfully.
+2024-10-15 13:37:36,641 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5151
+ * Running on http://192.168.99.75:5151
+2024-10-15 13:37:36,645 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
+2024-10-15 13:37:41,741 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:37:41] "GET / HTTP/1.1" 200 -
+2024-10-15 13:37:46,323 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:37:46] "GET /fetch_id_rencana HTTP/1.1" 200 -
+2024-10-15 13:37:46,473 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:37:46] "GET /fetch_account_skkos HTTP/1.1" 200 -
+2024-10-15 13:37:46,664 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:37:46] "GET / HTTP/1.1" 200 -
+2024-10-15 13:38:04,914 [ERROR] __main__: ID Rencana '00005' not found.
+2024-10-15 13:38:04,916 [ERROR] __main__: ValueError: ID Rencana not found
+2024-10-15 13:38:04,921 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:38:04] "[33mGET /get_rencana_details?rencana_id=00005 HTTP/1.1[0m" 404 -
+2024-10-15 13:43:50,098 [INFO] __main__: YOLO model and Google credentials initialized successfully.
+2024-10-15 13:43:50,119 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5151
+ * Running on http://192.168.99.75:5151
+2024-10-15 13:43:50,122 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
+2024-10-15 13:44:07,941 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:44:07] "GET / HTTP/1.1" 200 -
+2024-10-15 13:44:11,891 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:44:11] "GET /fetch_id_rencana HTTP/1.1" 200 -
+2024-10-15 13:44:14,950 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:44:14] "GET /fetch_account_skkos HTTP/1.1" 200 -
+2024-10-15 13:44:22,062 [ERROR] __main__: ID Rencana '00005' not found.
+2024-10-15 13:44:22,063 [ERROR] __main__: ValueError: ID Rencana not found
+2024-10-15 13:44:22,065 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:44:22] "[33mGET /get_rencana_details?rencana_id=00005 HTTP/1.1[0m" 404 -
+2024-10-15 13:49:05,695 [INFO] __main__: YOLO model and Google credentials initialized successfully.
+2024-10-15 13:49:05,719 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5151
+ * Running on http://192.168.99.75:5151
+2024-10-15 13:49:05,726 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
+2024-10-15 13:49:12,198 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:49:12] "GET / HTTP/1.1" 200 -
+2024-10-15 13:49:16,441 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:49:16] "GET /fetch_id_rencana HTTP/1.1" 200 -
+2024-10-15 13:49:19,151 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:49:19] "GET /fetch_account_skkos HTTP/1.1" 200 -
+2024-10-15 13:49:30,825 [INFO] __main__: Fetched records: [{'Timestamp': '14/10/2024 13:59:45', 'start date LPJ': '21.10.2024', 'end date LPJ': '25.10.2024', 'Requestor': 'ACHMAD FAQIH_9216970ZY', 'Unit': 'PUSDIKLAT_PUSDIKLAT', 'Nominal': 100000, 'id rencana': 1}, {'Timestamp': '10/10/2024 12:12:12', 'start date LPJ': '14.10.2024', 'end date LPJ': '18.10.2024', 'Requestor': 'SYAHRIR ADITYA SUPANGAT_9216190ZY', 'Unit': 'PUSDIKLAT_UPDL Banjarbaru', 'Nominal': 300000, 'id rencana': 2}, {'Timestamp': '11/10/2024 12:12:12', 'start date LPJ': '14.10.2024', 'end date LPJ': '18.10.2024', 'Requestor': 'ANDRY JUNIAN_7395006T', 'Unit': 'PUSDIKLAT_UPDL Bogor', 'Nominal': 4000000, 'id rencana': 3}, {'Timestamp': '13/10/2024 12:12:12', 'start date LPJ': '14.10.2024', 'end date LPJ': '18.10.2024', 'Requestor': 'CIPTANANDA CITRAHARDHANI_93161538ZY', 'Unit': 'PUSDIKLAT_UPDL Semarang', 'Nominal': 5000000, 'id rencana': 4}, {'Timestamp': '9/10/2024 12:12:12', 'start date LPJ': '14.10.2024', 'end date LPJ': '18.10.2024', 'Requestor': 'DENNI RESAPITA BR, SEMBIRING_88111367Z', 'Unit': 'PUSDIKLAT_UPDL Banjarbaru', 'Nominal': 20000000, 'id rencana': 5}, {'Timestamp': '15/10/2024 12:12:12', 'start date LPJ': '21.10.2024', 'end date LPJ': '25.10.2024', 'Requestor': 'RIDHO RAMADHAN_92151195ZY', 'Unit': 'PUSDIKLAT_UPDL Makassar', 'Nominal': 3000000000, 'id rencana': 6}]
+2024-10-15 13:49:30,828 [ERROR] __main__: ID Rencana '00005' not found.
+2024-10-15 13:49:30,828 [ERROR] __main__: ValueError: ID Rencana not found
+2024-10-15 13:49:30,828 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:49:30] "[33mGET /get_rencana_details?rencana_id=00005 HTTP/1.1[0m" 404 -
+2024-10-15 13:49:39,756 [INFO] __main__: Fetched records: [{'Timestamp': '14/10/2024 13:59:45', 'start date LPJ': '21.10.2024', 'end date LPJ': '25.10.2024', 'Requestor': 'ACHMAD FAQIH_9216970ZY', 'Unit': 'PUSDIKLAT_PUSDIKLAT', 'Nominal': 100000, 'id rencana': 1}, {'Timestamp': '10/10/2024 12:12:12', 'start date LPJ': '14.10.2024', 'end date LPJ': '18.10.2024', 'Requestor': 'SYAHRIR ADITYA SUPANGAT_9216190ZY', 'Unit': 'PUSDIKLAT_UPDL Banjarbaru', 'Nominal': 300000, 'id rencana': 2}, {'Timestamp': '11/10/2024 12:12:12', 'start date LPJ': '14.10.2024', 'end date LPJ': '18.10.2024', 'Requestor': 'ANDRY JUNIAN_7395006T', 'Unit': 'PUSDIKLAT_UPDL Bogor', 'Nominal': 4000000, 'id rencana': 3}, {'Timestamp': '13/10/2024 12:12:12', 'start date LPJ': '14.10.2024', 'end date LPJ': '18.10.2024', 'Requestor': 'CIPTANANDA CITRAHARDHANI_93161538ZY', 'Unit': 'PUSDIKLAT_UPDL Semarang', 'Nominal': 5000000, 'id rencana': 4}, {'Timestamp': '9/10/2024 12:12:12', 'start date LPJ': '14.10.2024', 'end date LPJ': '18.10.2024', 'Requestor': 'DENNI RESAPITA BR, SEMBIRING_88111367Z', 'Unit': 'PUSDIKLAT_UPDL Banjarbaru', 'Nominal': 20000000, 'id rencana': 5}, {'Timestamp': '15/10/2024 12:12:12', 'start date LPJ': '21.10.2024', 'end date LPJ': '25.10.2024', 'Requestor': 'RIDHO RAMADHAN_92151195ZY', 'Unit': 'PUSDIKLAT_UPDL Makassar', 'Nominal': 3000000000, 'id rencana': 6}]
+2024-10-15 13:49:39,758 [ERROR] __main__: ID Rencana '00001' not found.
+2024-10-15 13:49:39,759 [ERROR] __main__: ValueError: ID Rencana not found
+2024-10-15 13:49:39,759 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:49:39] "[33mGET /get_rencana_details?rencana_id=00001 HTTP/1.1[0m" 404 -
+2024-10-15 13:52:08,889 [INFO] __main__: YOLO model and Google credentials initialized successfully.
+2024-10-15 13:52:08,911 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5151
+ * Running on http://192.168.99.75:5151
+2024-10-15 13:52:08,912 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
+2024-10-15 13:52:15,138 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:52:15] "GET / HTTP/1.1" 200 -
+2024-10-15 13:52:19,072 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:52:19] "GET /fetch_id_rencana HTTP/1.1" 200 -
+2024-10-15 13:52:22,002 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:52:22] "GET /fetch_account_skkos HTTP/1.1" 200 -
+2024-10-15 13:52:29,151 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:52:29] "GET /get_rencana_details?rencana_id=00005 HTTP/1.1" 200 -
+2024-10-15 13:52:38,771 [INFO] __main__: File saved to ./uploads\temp_24a4335ce97c4d36b3689f507669e93e.jpg
+2024-10-15 13:52:38,782 [INFO] __main__: Removed old temp file: ./uploads\temp_02bee30c184647aca551a191796000d0.jpg
+2024-10-15 13:52:38,785 [INFO] __main__: Removed old temp file: ./uploads\temp_16aa2d05477c4b189ce5aecf24b7d331.jpg
+2024-10-15 13:52:38,789 [INFO] __main__: Removed old temp file: ./uploads\temp_4c89b94ccef44aeea13e31079fa09a2b.jpg
+2024-10-15 13:52:38,791 [INFO] __main__: Removed old temp file: ./uploads\temp_65c4f64a91414f4b8fb985bd9e50f522.jpg
+2024-10-15 13:52:47,206 [INFO] __main__: Extracted Text: 741,150
+2024-10-15 13:52:55,271 [INFO] __main__: Receipt uploaded successfully.
+2024-10-15 13:52:55,273 [INFO] __main__: Temporary file ./uploads\temp_24a4335ce97c4d36b3689f507669e93e.jpg removed.
+2024-10-15 13:52:55,277 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:52:55] "POST /upload_file HTTP/1.1" 200 -
+2024-10-15 13:53:09,273 [INFO] __main__: File saved to ./uploads\temp_79a76433ad894a149cf28303b2095c0c.jpg
+2024-10-15 13:53:14,910 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:53:14] "POST /upload_evidence HTTP/1.1" 200 -
+2024-10-15 13:53:18,352 [INFO] __main__: Data appended to Google Sheet successfully.
+2024-10-15 13:53:18,353 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:53:18] "POST /submit HTTP/1.1" 200 -
+2024-10-15 13:56:54,298 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:56:54] "GET / HTTP/1.1" 200 -
+2024-10-15 13:56:57,727 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:56:57] "GET /fetch_id_rencana HTTP/1.1" 200 -
+2024-10-15 13:57:00,853 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:57:00] "GET /fetch_account_skkos HTTP/1.1" 200 -
+2024-10-15 13:57:17,610 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:57:17] "GET / HTTP/1.1" 200 -
+2024-10-15 13:57:20,626 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:57:20] "GET /fetch_id_rencana HTTP/1.1" 200 -
+2024-10-15 13:57:23,271 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:57:23] "GET /fetch_account_skkos HTTP/1.1" 200 -
+2024-10-15 13:57:31,955 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:57:31] "GET /get_rencana_details?rencana_id=00002 HTTP/1.1" 200 -
+2024-10-15 13:57:50,891 [INFO] __main__: File saved to ./uploads\temp_25dbd205c8734f3ba92e28db411733ab
+2024-10-15 13:57:53,561 [INFO] __main__: Extracted Text: 10.500
+2024-10-15 13:58:02,062 [INFO] __main__: Receipt uploaded successfully.
+2024-10-15 13:58:02,063 [INFO] __main__: Temporary file ./uploads\temp_25dbd205c8734f3ba92e28db411733ab removed.
+2024-10-15 13:58:02,064 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:58:02] "POST /upload_file HTTP/1.1" 200 -
+2024-10-15 13:58:27,193 [INFO] __main__: File saved to ./uploads\temp_a2693a00442c4930951ae27b2a57b3e2.jpeg
+2024-10-15 13:58:27,203 [INFO] __main__: File saved to ./uploads\temp_c62c5188707045d386cee387c57dc6c9.jpeg
+2024-10-15 13:58:27,214 [INFO] __main__: File saved to ./uploads\temp_0095f999ab0c448aaea8d285e7d4051d.jpeg
+2024-10-15 13:58:27,223 [INFO] __main__: File saved to ./uploads\temp_3f80d67adc62422689c59ced5f4f5c43.jpeg
+2024-10-15 13:58:27,233 [INFO] __main__: File saved to ./uploads\temp_94998b2a0e094d0f97ed8fd3caa237c0.jpeg
+2024-10-15 13:58:27,245 [INFO] __main__: File saved to ./uploads\temp_166b31527a6b4523b06c968a6c94065c.jpeg
+2024-10-15 13:58:27,254 [INFO] __main__: File saved to ./uploads\temp_68aebfdb207042029a085ba55099c62b.jpeg
+2024-10-15 13:58:27,264 [INFO] __main__: File saved to ./uploads\temp_e329e3a9d8cd48bd8c2f8cb21bb51a82.jpeg
+2024-10-15 13:58:27,276 [INFO] __main__: File saved to ./uploads\temp_c44e14da7e5d41a2b8793745c44d0b47.jpeg
+2024-10-15 13:58:27,283 [INFO] __main__: File saved to ./uploads\temp_90e2316450924bbd8890d11726dd5605.jpeg
+2024-10-15 13:59:25,173 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 13:59:25] "POST /upload_evidence HTTP/1.1" 200 -
+2024-10-15 14:00:18,945 [INFO] __main__: YOLO model and Google credentials initialized successfully.
+2024-10-15 14:00:18,964 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5151
+ * Running on http://192.168.99.75:5151
+2024-10-15 14:00:18,965 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
+2024-10-15 14:00:30,004 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:00:30] "GET / HTTP/1.1" 200 -
+2024-10-15 14:00:33,729 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:00:33] "GET /fetch_id_rencana HTTP/1.1" 200 -
+2024-10-15 14:00:36,678 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:00:36] "GET /fetch_account_skkos HTTP/1.1" 200 -
+2024-10-15 14:00:50,121 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:00:50] "GET / HTTP/1.1" 200 -
+2024-10-15 14:00:52,713 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:00:52] "GET /fetch_id_rencana HTTP/1.1" 200 -
+2024-10-15 14:00:55,919 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:00:55] "GET /fetch_account_skkos HTTP/1.1" 200 -
+2024-10-15 14:01:11,261 [INFO] __main__: File saved to ./uploads\temp_0d15fcaacf3642fdb244f711924329aa
+2024-10-15 14:01:15,460 [INFO] __main__: Extracted Text: 10.500
+2024-10-15 14:01:22,849 [INFO] __main__: Receipt uploaded successfully.
+2024-10-15 14:01:22,852 [INFO] __main__: Temporary file ./uploads\temp_0d15fcaacf3642fdb244f711924329aa removed.
+2024-10-15 14:01:22,856 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:01:22] "POST /upload_file HTTP/1.1" 200 -
+2024-10-15 14:01:41,074 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:01:41] "GET /get_rencana_details?rencana_id=00006 HTTP/1.1" 200 -
+2024-10-15 14:01:51,379 [INFO] __main__: File saved to ./uploads\temp_9373bf661c934bfdb6a2d5c49bb50e8b.jpeg
+2024-10-15 14:01:51,389 [INFO] __main__: File saved to ./uploads\temp_1a0b2b4628dd4a349f2ed78e2c6b90e6.jpeg
+2024-10-15 14:01:51,399 [INFO] __main__: File saved to ./uploads\temp_44809a0957774e46aa3fc4c63e74fd04.jpeg
+2024-10-15 14:01:51,407 [INFO] __main__: File saved to ./uploads\temp_25e5fa008f5948a79c58c2a076254840.jpeg
+2024-10-15 14:01:51,417 [INFO] __main__: File saved to ./uploads\temp_8c89c32fc731403a9e2209509c7490e1.jpeg
+2024-10-15 14:01:51,430 [INFO] __main__: File saved to ./uploads\temp_20169afc8e0d401f9d1c5c7a3934dbc8.jpeg
+2024-10-15 14:01:51,439 [INFO] __main__: File saved to ./uploads\temp_f9f9ad12e60042349b8b13c45e65cbc3.jpeg
+2024-10-15 14:01:51,449 [INFO] __main__: File saved to ./uploads\temp_761c365e38c148ba88de6efd647a9ed4.jpeg
+2024-10-15 14:01:51,460 [INFO] __main__: File saved to ./uploads\temp_6d989c07d001401788c7b030678653d5.jpeg
+2024-10-15 14:01:51,471 [INFO] __main__: File saved to ./uploads\temp_f888b9ded96b4ab8a5ee0159011894f0.jpeg
+2024-10-15 14:02:46,697 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:02:46] "POST /upload_evidence HTTP/1.1" 200 -
+2024-10-15 14:02:50,610 [INFO] __main__: Data appended to Google Sheet successfully.
+2024-10-15 14:02:50,614 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:02:50] "POST /submit HTTP/1.1" 200 -
+2024-10-15 14:10:54,120 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:10:54] "GET / HTTP/1.1" 200 -
+2024-10-15 14:10:57,732 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:10:57] "GET /fetch_id_rencana HTTP/1.1" 200 -
+2024-10-15 14:11:00,347 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:11:00] "GET /fetch_account_skkos HTTP/1.1" 200 -
+2024-10-15 14:11:40,054 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:11:40] "GET / HTTP/1.1" 200 -
+2024-10-15 14:11:42,757 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:11:42] "GET /fetch_id_rencana HTTP/1.1" 200 -
+2024-10-15 14:11:44,757 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:11:44] "GET /fetch_account_skkos HTTP/1.1" 200 -
+2024-10-15 14:11:56,038 [INFO] __main__: File saved to ./uploads\temp_8aedec24ff7b43ce813415d9f5d7ebd1.jpg
+2024-10-15 14:11:56,043 [INFO] __main__: Removed old temp file: ./uploads\temp_1dee32b61a5843e8ac22b402acfe176e.jpg
+2024-10-15 14:11:56,044 [INFO] __main__: Removed old temp file: ./uploads\temp_232f8d412d564c35a1a5922307666e9f.jpg
+2024-10-15 14:11:56,046 [INFO] __main__: Removed old temp file: ./uploads\temp_4a6b26afc9de43719c68b3499a8494fc.jpg
+2024-10-15 14:11:58,908 [INFO] __main__: Extracted Text: 66,000
+2024-10-15 14:12:05,829 [INFO] __main__: Receipt uploaded successfully.
+2024-10-15 14:12:05,832 [INFO] __main__: Temporary file ./uploads\temp_8aedec24ff7b43ce813415d9f5d7ebd1.jpg removed.
+2024-10-15 14:12:05,837 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:12:05] "POST /upload_file HTTP/1.1" 200 -
+2024-10-15 14:12:25,071 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:12:25] "GET /get_rencana_details?rencana_id=00005 HTTP/1.1" 200 -
+2024-10-15 14:12:34,965 [INFO] __main__: File saved to ./uploads\temp_236125922cd347b1af7bb64e5c26e018.jpg
+2024-10-15 14:12:34,987 [INFO] __main__: File saved to ./uploads\temp_66e398b8a780440db03116c0c17c4b4b.jpg
+2024-10-15 14:12:34,997 [INFO] __main__: File saved to ./uploads\temp_5febe1bf5a7e472892ceb639b862711c.jpg
+2024-10-15 14:12:52,909 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:12:52] "POST /upload_evidence HTTP/1.1" 200 -
+2024-10-15 14:12:55,317 [INFO] __main__: Data appended to Google Sheet successfully.
+2024-10-15 14:12:55,320 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:12:55] "POST /submit HTTP/1.1" 200 -
+2024-10-15 14:13:14,191 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:13:14] "GET / HTTP/1.1" 200 -
+2024-10-15 14:13:17,154 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:13:17] "GET /fetch_id_rencana HTTP/1.1" 200 -
+2024-10-15 14:13:20,112 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:13:20] "GET /fetch_account_skkos HTTP/1.1" 200 -
+2024-10-15 14:13:50,393 [INFO] __main__: File saved to ./uploads\temp_82c89ffb6ea54306bce793d2b3fccc21
+2024-10-15 14:13:52,640 [INFO] __main__: Extracted Text: 10,500
+2024-10-15 14:13:59,389 [INFO] __main__: Receipt uploaded successfully.
+2024-10-15 14:13:59,391 [INFO] __main__: Temporary file ./uploads\temp_82c89ffb6ea54306bce793d2b3fccc21 removed.
+2024-10-15 14:13:59,393 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:13:59] "POST /upload_file HTTP/1.1" 200 -
+2024-10-15 14:14:35,436 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:14:35] "GET /get_rencana_details?rencana_id=00004 HTTP/1.1" 200 -
+2024-10-15 14:14:44,480 [INFO] __main__: Data appended to Google Sheet successfully.
+2024-10-15 14:14:44,481 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:14:44] "POST /submit HTTP/1.1" 200 -
+2024-10-15 14:16:23,986 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:16:23] "GET / HTTP/1.1" 200 -
+2024-10-15 14:16:27,302 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:16:27] "GET /fetch_id_rencana HTTP/1.1" 200 -
+2024-10-15 14:16:29,891 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:16:29] "GET /fetch_account_skkos HTTP/1.1" 200 -
+2024-10-15 14:16:37,345 [INFO] __main__: File saved to ./uploads\temp_837e7df5aaac42aeaf0945ede52d393d
+2024-10-15 14:16:39,600 [INFO] __main__: Extracted Text: 10.00
+2024-10-15 14:16:46,658 [INFO] __main__: Receipt uploaded successfully.
+2024-10-15 14:16:46,659 [INFO] __main__: Temporary file ./uploads\temp_837e7df5aaac42aeaf0945ede52d393d removed.
+2024-10-15 14:16:46,660 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:16:46] "POST /upload_file HTTP/1.1" 200 -
+2024-10-15 14:20:16,607 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:20:16] "GET / HTTP/1.1" 200 -
+2024-10-15 14:20:20,457 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:20:20] "GET /fetch_id_rencana HTTP/1.1" 200 -
+2024-10-15 14:20:23,208 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:20:23] "GET /fetch_account_skkos HTTP/1.1" 200 -
+2024-10-15 14:20:52,825 [INFO] __main__: YOLO model and Google credentials initialized successfully.
+2024-10-15 14:20:52,843 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5151
+ * Running on http://192.168.99.75:5151
+2024-10-15 14:20:52,846 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
+2024-10-15 14:20:57,336 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:20:57] "GET / HTTP/1.1" 200 -
+2024-10-15 14:21:00,238 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:21:00] "GET /fetch_id_rencana HTTP/1.1" 200 -
+2024-10-15 14:21:00,581 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:21:00] "GET /fetch_account_skkos HTTP/1.1" 200 -
+2024-10-15 14:21:20,112 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:21:20] "GET / HTTP/1.1" 200 -
+2024-10-15 14:21:22,522 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:21:22] "GET /fetch_id_rencana HTTP/1.1" 200 -
+2024-10-15 14:21:22,567 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:21:22] "GET /fetch_account_skkos HTTP/1.1" 200 -
+2024-10-15 14:22:05,379 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:22:05] "GET / HTTP/1.1" 200 -
+2024-10-15 14:22:09,174 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:22:09] "GET /fetch_account_skkos HTTP/1.1" 200 -
+2024-10-15 14:22:09,284 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:22:09] "GET /fetch_id_rencana HTTP/1.1" 200 -
+2024-10-15 14:22:57,335 [INFO] __main__: File saved to ./uploads\temp_657e520f1918496c9084e723efbc3ead
+2024-10-15 14:22:57,343 [INFO] __main__: Removed old temp file: ./uploads\temp_31482060449e4672bcaf9a92ad716130.jpg
+2024-10-15 14:22:57,345 [INFO] __main__: Removed old temp file: ./uploads\temp_363420757e474560b8e967d2c84f5644.jpg
+2024-10-15 14:22:57,351 [INFO] __main__: Removed old temp file: ./uploads\temp_5be82ca4c6874766b398ef1d1d5a9e3b.jpg
+2024-10-15 14:22:57,352 [INFO] __main__: Removed old temp file: ./uploads\temp_619d26a6cd644cef85d3aebe3301c5bf.jpg
+2024-10-15 14:22:57,354 [INFO] __main__: Removed old temp file: ./uploads\temp_6211dde3c1324e9e9ebd28b1138faf11.jpg
+2024-10-15 14:22:57,356 [INFO] __main__: Removed old temp file: ./uploads\temp_8722a3cd2a9c47408906b83728450b3f.jpg
+2024-10-15 14:22:57,358 [INFO] __main__: Removed old temp file: ./uploads\temp_9302490cc79348f1b26d91b16761ac86.jpg
+2024-10-15 14:22:57,359 [INFO] __main__: Removed old temp file: ./uploads\temp_954be34b4f4c4b409281c3968d8783f6.jpg
+2024-10-15 14:22:57,363 [INFO] __main__: Removed old temp file: ./uploads\temp_a6a5c428c1de4e33b1946ac32a434016.jpg
+2024-10-15 14:22:57,365 [INFO] __main__: Removed old temp file: ./uploads\temp_ba5b97b33c4d448f8cc6e4434b8be280.jpg
+2024-10-15 14:22:57,366 [INFO] __main__: Removed old temp file: ./uploads\temp_cf28dda873204ba0921d65d4a4b741d5.jpg
+2024-10-15 14:22:57,367 [INFO] __main__: Removed old temp file: ./uploads\temp_e5f613fabd914772a8249fcdc0fd2ab0.jpg
+2024-10-15 14:22:57,369 [INFO] __main__: Removed old temp file: ./uploads\temp_fcfe6d50a21e46eab60f9b6772925694.jpg
+2024-10-15 14:23:02,435 [INFO] __main__: Extracted Text: 10.800
+2024-10-15 14:23:09,059 [INFO] __main__: Receipt uploaded successfully.
+2024-10-15 14:23:09,060 [INFO] __main__: Temporary file ./uploads\temp_657e520f1918496c9084e723efbc3ead removed.
+2024-10-15 14:23:09,061 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:23:09] "POST /upload_file HTTP/1.1" 200 -
+2024-10-15 14:23:29,315 [WARNING] __main__: Missing required fields: account_skkos_id
+2024-10-15 14:23:29,317 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:23:29] "[31m[1mPOST /submit HTTP/1.1[0m" 400 -
+2024-10-15 14:23:48,437 [INFO] __main__: File saved to ./uploads\temp_fab4a2b8d25c4120ad03fa6fb9210ea1.jpg
+2024-10-15 14:23:51,094 [INFO] __main__: Extracted Text: 741,150
+2024-10-15 14:23:55,065 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:23:55] "GET /get_rencana_details?rencana_id=00002 HTTP/1.1" 200 -
+2024-10-15 14:23:57,918 [INFO] __main__: Receipt uploaded successfully.
+2024-10-15 14:23:57,921 [INFO] __main__: Temporary file ./uploads\temp_fab4a2b8d25c4120ad03fa6fb9210ea1.jpg removed.
+2024-10-15 14:23:57,928 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:23:57] "POST /upload_file HTTP/1.1" 200 -
+2024-10-15 14:24:06,505 [WARNING] __main__: Missing required fields: account_skkos_id
+2024-10-15 14:24:06,507 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:24:06] "[31m[1mPOST /submit HTTP/1.1[0m" 400 -
+2024-10-15 14:25:28,756 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:25:28] "GET / HTTP/1.1" 200 -
+2024-10-15 14:25:32,142 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:25:32] "GET /fetch_id_rencana HTTP/1.1" 200 -
+2024-10-15 14:25:32,264 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:25:32] "GET /fetch_account_skkos HTTP/1.1" 200 -
+2024-10-15 14:26:16,905 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:26:16] "GET / HTTP/1.1" 200 -
+2024-10-15 14:26:19,830 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:26:19] "GET /fetch_id_rencana HTTP/1.1" 200 -
+2024-10-15 14:26:20,052 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:26:20] "GET /fetch_account_skkos HTTP/1.1" 200 -
+2024-10-15 14:26:33,842 [INFO] __main__: File saved to ./uploads\temp_2f8579aa648f499ca6e5b5fdd339f7e5.jpg
+2024-10-15 14:26:36,343 [INFO] __main__: Extracted Text: 741,150
+2024-10-15 14:26:44,704 [INFO] __main__: Receipt uploaded successfully.
+2024-10-15 14:26:44,707 [INFO] __main__: Temporary file ./uploads\temp_2f8579aa648f499ca6e5b5fdd339f7e5.jpg removed.
+2024-10-15 14:26:44,712 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:26:44] "POST /upload_file HTTP/1.1" 200 -
+2024-10-15 14:27:02,388 [INFO] __main__: File saved to ./uploads\temp_28109c15a807451da8f8017432800970.jpg
+2024-10-15 14:27:02,398 [INFO] __main__: File saved to ./uploads\temp_7496fdfc512b47548dbf644f31f82231.jpg
+2024-10-15 14:27:02,409 [INFO] __main__: File saved to ./uploads\temp_c4b2834e9dbe4cdc86073d16b90386b1.jpg
+2024-10-15 14:27:21,976 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:27:21] "POST /upload_evidence HTTP/1.1" 200 -
+2024-10-15 14:27:22,334 [WARNING] __main__: Missing required fields: account_skkos_id
+2024-10-15 14:27:22,335 [INFO] werkzeug: 127.0.0.1 - - [15/Oct/2024 14:27:22] "[31m[1mPOST /submit HTTP/1.1[0m" 400 -

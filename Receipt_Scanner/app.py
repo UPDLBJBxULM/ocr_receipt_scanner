@@ -87,8 +87,8 @@ def get_rencana_details_from_sheet(rencana_id):
                 record_id = str(id_value).strip()
             if record_id == str(rencana_id).strip():
                 return {
-                    "start_date_lpj": record.get("start date LPJ", ""),
-                    "end_date_lpj": record.get("end date LPJ", ""),
+                    "start_date_ar": record.get("start date A/R", ""), # menyesuaikan nama column
+                    "end_date_ar": record.get("end date A/R", ""), # menyesuaikan nama column
                     "requestor": record.get("Requestor", ""),
                     "unit": record.get("Unit", ""),
                     "nominal": record.get("Nominal", ""),
@@ -189,7 +189,7 @@ def extract_text_from_image(cropped_image):
 
 
 def append_to_sheet(
-    amount, rencana_id, account_skkos_id, kegiatan, lpj, receipt_link, evidence_links
+    amount, rencana_id, account_skkos_id, uraian, judulLaporan, receipt_link, evidence_links
 ):
     """Append data to the Google Sheet."""
     scope = SCOPES
@@ -210,8 +210,8 @@ def append_to_sheet(
         evidence_links,  # Column E: Gambar Barang
         account_skkos_id,  # Column F: Account List
         "",  # Column G: Leave blank
-        kegiatan,  # Column H: Uraian
-        lpj,  # Column I: Judul Laporan
+        uraian,  # Column H: Uraian
+        judulLaporan,  # Column I: Judul Laporan
     ]
 
     # Find the first blank row and append the data
@@ -258,8 +258,8 @@ def submit_data():
         account_skkos_id = request.form.get("account_skkos_id")
         currency = request.form.get("currency")
         amount = request.form.get("amount")
-        kegiatan = request.form.get("kegiatan")
-        lpj = request.form.get("lpj")
+        uraian = request.form.get("uraian")
+        judulLaporan = request.form.get("judulLaporan")
         receipt_link = request.form.get("receipt_link")  # Link from /upload_file
         evidence_links = request.form.get("evidence_links")  # Comma-separated links
 
@@ -274,8 +274,8 @@ def submit_data():
             amount,
             rencana_id,
             account_skkos_id,
-            kegiatan,
-            lpj,
+            uraian,
+            judulLaporan,
             receipt_link,
             evidence_links,
         )
@@ -335,12 +335,12 @@ def fetch_account_skkos():
 # Suggestions route (if needed)
 @app.route("/suggestions", methods=["GET"])
 def get_suggestions():
-    """Provide suggestions for 'KEGIATAN' and 'LPJ' based on previous entries."""
+    """Provide suggestions for 'uraian' and 'judulLaporan' based on previous entries."""
     column = request.args.get("column")
     try:
-        if column == "kegiatan":
+        if column == "uraian":
             data = query_from_sheet("REKAPREALISASI", 8)  # Column H
-        elif column == "lpj":
+        elif column == "judulLaporan":
             data = query_from_sheet("REKAPREALISASI", 9)  # Column I
         else:
             return jsonify({"error": "Invalid column"}), 400

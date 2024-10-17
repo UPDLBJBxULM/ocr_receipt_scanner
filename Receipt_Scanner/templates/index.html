@@ -43,14 +43,14 @@
     <!-- Container -->
     <div class="bg-white shadow-md rounded-lg max-w-md w-full">
       <!-- Header -->
-      <div class="bg-indigo-600 text-white text-center py-4 rounded-t-lg">
+      <div class="bg-[#10ace4] text-white text-center py-4 rounded-t-lg">
         <h1 class="text-xl font-semibold">Receipt Scanner</h1>
       </div>
 
       <!-- Content -->
       <div class="p-6">
         <!-- Image/Video Container -->
-        <div class="relative mb-6">
+        <div class="relative mb-4">
           <div
             class="border border-gray-300 rounded-lg overflow-hidden h-64 flex items-center justify-center bg-gray-100"
           >
@@ -93,11 +93,23 @@
           </div>
         </div>
 
+        <div class="mb-4">
+          <label for="accountIdSelect" class="block text-gray-700 mb-1"
+            >Account SKKO</label
+          >
+          <select
+            id="accountIdSelect"
+            name="accountSKKO"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="" selected disabled>Pilih Akun SKKO</option>
+          </select>
+        </div>
         <!-- Buttons -->
         <div class="flex space-x-2 mb-4">
           <button
             id="scanButton"
-            class="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 focus:outline-none"
+            class="flex-1 bg-[#10ace4] text-white py-2 rounded-lg hover:bg-indigo-700 focus:outline-none"
           >
             <span id="scanButtonText">Pindai Nota</span>
           </button>
@@ -128,39 +140,7 @@
         </div>
 
         <!-- Form Fields -->
-        <div class="space-y-4">
-          <!-- Currency Selection -->
-          <div>
-            <label for="currencySelect" class="block text-gray-700 mb-1"
-              >Mata Uang</label
-            >
-            <select
-              id="currencySelect"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="IDR" selected>IDR</option>
-              <option value="USD">USD</option>
-            </select>
-          </div>
-          <!-- Amount Input -->
-          <div>
-            <label for="amountInput" class="block text-gray-700 mb-1"
-              >Jumlah</label
-            >
-            <div class="flex">
-              <span
-                class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm"
-              >
-                <span id="currencySymbol">Rp</span>
-              </span>
-              <input
-                id="amountInput"
-                type="number"
-                class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                readonly
-              />
-            </div>
-          </div>
+        <div class="space-y-2">
           <div>
             <label for="rencanaIdSelect" class="block text-gray-700 mb-1"
               >ID Rencana</label
@@ -172,32 +152,62 @@
               <option value="" selected disabled>Pilih ID Rencana</option>
             </select>
           </div>
-          <div>
-            <label for="accountIdSelect" class="block text-gray-700 mb-1"
-              >Account SKKO</label
-            >
-            <select
-              id="accountIdSelect"
-              name="accountSKKO"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="" selected disabled>Pilih Akun SKKO</option>
-            </select>
+          <!-- Currency Select -->
+          <div class="flex justify-between space-x-4">
+            <!-- Currency Select on the left -->
+            <div class="w-1/4">
+              <label
+                for="currencySelect"
+                class="block text-gray-700 mb-1 text-left"
+                >Mata Uang</label
+              >
+              <select
+                id="currencySelect"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="IDR" selected>IDR</option>
+                <option value="USD">USD</option>
+              </select>
+            </div>
+
+            <!-- Amount Input on the right -->
+            <div class="w-3/4 text-right">
+              <label
+                for="amountInput"
+                class="block text-gray-700 mb-1 text-left"
+                >Jumlah</label
+              >
+              <div class="flex">
+                <span
+                  class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm"
+                >
+                  <span id="currencySymbol">Rp</span>
+                </span>
+                <input
+                  id="amountInput"
+                  type="number"
+                  class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+            </div>
           </div>
+
           <div>
-            <label for="kegiatanInput" class="block text-gray-700 mb-1"
-              >Kegiatan</label
+            <label for="uraianInput" class="block text-gray-700 mb-1"
+              >Uraian</label
             >
             <input
-              id="kegiatanInput"
+              id="uraianInput"
               type="text"
               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
           <div>
-            <label for="lpjInput" class="block text-gray-700 mb-1">LPJ</label>
+            <label for="judulLaporanInput" class="block text-gray-700 mb-1"
+              >Judul Laporan</label
+            >
             <input
-              id="lpjInput"
+              id="judulLaporanInput"
               type="text"
               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
@@ -287,8 +297,8 @@
       const currencySelect = document.getElementById("currencySelect"); // New currency select
       const currencySymbol = document.getElementById("currencySymbol"); // Currency symbol display
       const amountInput = document.getElementById("amountInput");
-      const kegiatanInput = document.getElementById("kegiatanInput");
-      const lpjInput = document.getElementById("lpjInput");
+      const uraianInput = document.getElementById("uraianInput");
+      const judulLaporanInput = document.getElementById("judulLaporanInput");
       const resetButton = document.getElementById("resetButton");
       const receiptLinkInput = document.getElementById("receiptLinkInput");
       const evidenceLinksInput = document.getElementById("evidenceLinksInput");
@@ -462,7 +472,10 @@
           const data = await response.json();
 
           if (response.ok && data.extracted_text && data.receipt_link) {
-            const cleanedAmount = data.extracted_text.replace(/,/g, "").trim();
+            const cleanedAmount = data.extracted_text
+              .replace(/[Rp.]/g, "") // Remove "Rp" and dots
+              .replace(/,/g, "") // Remove commas, if any
+              .trim(); // Remove any leading/trailing spaces
             amountInput.value = cleanedAmount;
             receiptLinkInput.value = data.receipt_link;
             showModal("Receipt processed and uploaded successfully!");
@@ -534,15 +547,24 @@
           }
           const data = await response.json();
 
+          // Format the nominal value as Indonesian Rupiah
+          const formatter = new Intl.NumberFormat("id-ID", {
+            style: "currency",
+            currency: "IDR",
+            minimumFractionDigits: 0, // You can adjust this based on your preference
+          });
+
+          const formattedNominal = formatter.format(data.nominal);
+
           // Display the details in the modal
           rencanaDetailsDiv.innerHTML = `
-            <p><strong>Start Date LPJ:</strong> ${data.start_date_lpj}</p>
-            <p><strong>End Date LPJ:</strong> ${data.end_date_lpj}</p>
-            <p><strong>Requestor:</strong> ${data.requestor}</p>
-            <p><strong>Unit:</strong> ${data.unit}</p>
-            <p><strong>Nominal:</strong> ${data.nominal}</p>
-            <p><strong>ID Rencana:</strong> ${data.id_rencana}</p>
-          `;
+                <p><strong>Start Date A/R:</strong> ${data.start_date_ar}</p>
+                <p><strong>End Date A/R:</strong> ${data.end_date_ar}</p>
+                <p><strong>Requestor:</strong> ${data.requestor}</p>
+                <p><strong>Unit:</strong> ${data.unit}</p>
+                <p><strong>Nominal:</strong> ${formattedNominal}</p>
+                <p><strong>ID Rencana:</strong> ${data.id_rencana}</p>
+            `;
 
           // Show the modal
           rencanaModal.classList.remove("hidden");
@@ -572,8 +594,8 @@
         const selectedAccountId = accountIdSelect.value;
         const currency = currencySelect.value; // Get selected currency
         const totalAmount = amountInput.value;
-        const kegiatan = kegiatanInput.value;
-        const lpj = lpjInput.value;
+        const uraian = uraianInput.value;
+        const judulLaporan = judulLaporanInput.value;
         const receiptLink = receiptLinkInput.value;
         const evidenceFiles = uploadedBarangFiles;
 
@@ -583,8 +605,8 @@
           !selectedAccountId ||
           !currency ||
           !totalAmount ||
-          !kegiatan ||
-          !lpj ||
+          !uraian ||
+          !judulLaporan ||
           !receiptLink
         ) {
           showModal("All fields are required!");
@@ -666,8 +688,8 @@
         payload.append("account_skkos_id", selectedAccountId);
         payload.append("currency", currency);
         payload.append("amount", totalAmount);
-        payload.append("kegiatan", kegiatan);
-        payload.append("lpj", lpj);
+        payload.append("uraian", uraian);
+        payload.append("judulLaporan", judulLaporan);
         payload.append("receipt_link", receiptLink);
         payload.append("evidence_links", evidenceLinks.join(", "));
 
@@ -704,8 +726,8 @@
         currencySelect.value = "IDR"; // Reset currency to default
         currencySymbol.textContent = "Rp"; // Reset symbol to default
         amountInput.value = "";
-        kegiatanInput.value = "";
-        lpjInput.value = "";
+        uraianInput.value = "";
+        judulLaporanInput.value = "";
         receiptLinkInput.value = "";
         evidenceLinksInput.value = "";
         uploadedBarangFiles = [];
