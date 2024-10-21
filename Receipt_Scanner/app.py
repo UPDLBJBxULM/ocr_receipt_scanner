@@ -1,21 +1,31 @@
 import os
 import cv2
-import glob
 import uuid
 import gspread
 import logging
 import requests
-import mimetypes
 import numpy as np
+import imghdr
 from ultralytics import YOLO
 from dotenv import load_dotenv
 from google.cloud import vision
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
-from flask import Flask, request, jsonify, render_template, session
+from flask import (
+    Flask,
+    request,
+    jsonify,
+    render_template,
+    session,
+    make_response,
+)
+from markupsafe import escape
 from oauth2client.service_account import ServiceAccountCredentials
 
 # ------------------------ Configuration ------------------------ #
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Receipt API configuration
 RECEIPT_API_ENDPOINT = os.getenv("RECEIPT_API_ENDPOINT")
@@ -38,15 +48,21 @@ SCOPES = [
 # Google Sheets configuration
 GOOGLE_SHEET_ID = os.getenv("GOOGLE_SHEET_ID")
 
-# Load environment variables from .env file
-load_dotenv()
-
 # Set up Flask app
 app = Flask(__name__)
 UPLOAD_FOLDER = "./uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024  # Limit file uploads to 100MB
-app.secret_key = "your_secret_key"  # Replace with your actual secret key
+
+# Set secret key from environment variable
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "your_default_secret_key")
+
+# Secure session cookie
+app.config.update(
+    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+)
 
 # Ensure the upload directory exists
 if not os.path.exists(UPLOAD_FOLDER):
@@ -68,7 +84,7 @@ def init_gspread_client():
     return client
 
 
-def get_rencana_details_from_sheet(rencana_id):
+def get_rencana_details_from_sheet(rencana_id: str) -> dict:
     client = init_gspread_client()
     sheet = client.open_by_key(GOOGLE_SHEET_ID).worksheet("RENCANA")
 
@@ -88,12 +104,8 @@ def get_rencana_details_from_sheet(rencana_id):
                 record_id = str(id_value).strip()
             if record_id == str(rencana_id).strip():
                 return {
-                    "start_date_ar": record.get(
-                        "start date A/R", ""
-                    ),  # menyesuaikan nama column
-                    "end_date_ar": record.get(
-                        "end date A/R", ""
-                    ),  # menyesuaikan nama column
+                    "start_date_ar": record.get("start date A/R", ""),
+                    "end_date_ar": record.get("end date A/R", ""),
                     "requestor": record.get("Requestor", ""),
                     "unit": record.get("Unit", ""),
                     "nominal": record.get("Nominal", ""),
@@ -103,19 +115,11 @@ def get_rencana_details_from_sheet(rencana_id):
 
 
 # Function to generate a unique temporary filename
-def generate_temp_filename(extension=".jpg"):
+def generate_temp_filename(extension=".jpg") -> str:
     return f"temp_{uuid.uuid4().hex}{extension}"
 
 
-# Function to clean up old temporary files
-def cleanup_temp_files(max_age_hours=1):
-    cutoff = datetime.now() - timedelta(hours=max_age_hours)
-    for temp_file in glob.glob(os.path.join(app.config["UPLOAD_FOLDER"], "temp_*")):
-        if datetime.fromtimestamp(os.path.getmtime(temp_file)) < cutoff:
-            os.remove(temp_file)
-
-
-def set_google_credentials(json_path):
+def set_google_credentials(json_path: str):
     """Set the environment variable for Google Cloud credentials."""
     if not os.path.exists(json_path):
         raise FileNotFoundError(f"Google credentials file not found at {json_path}")
@@ -128,7 +132,7 @@ def get_google_sheet():
     return client.open_by_key(GOOGLE_SHEET_ID).worksheet("REKAPREALISASI")
 
 
-def load_model(model_path):
+def load_model(model_path: str):
     """Load the YOLOv8 model."""
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"YOLO model file not found at {model_path}")
@@ -136,7 +140,7 @@ def load_model(model_path):
     return model
 
 
-def get_class_names(model):
+def get_class_names(model) -> dict:
     """Retrieve class names from the YOLO model."""
     if hasattr(model, "names"):
         return model.names
@@ -146,7 +150,9 @@ def get_class_names(model):
         raise AttributeError("Cannot find class names in the YOLO model.")
 
 
-def visualize_and_extract_total_value(image, model, class_names, target_label):
+def visualize_and_extract_total_value(
+    image, model, class_names: dict, target_label: str
+):
     """Detect the target label, crop the image, and prepare for OCR."""
     img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     results = model(img_rgb)
@@ -173,7 +179,7 @@ def visualize_and_extract_total_value(image, model, class_names, target_label):
         return None
 
 
-def extract_text_from_image(cropped_image):
+def extract_text_from_image(cropped_image) -> str:
     """Use Google Cloud Vision to extract text from the cropped image."""
     client = vision.ImageAnnotatorClient()
 
@@ -194,13 +200,13 @@ def extract_text_from_image(cropped_image):
 
 
 def append_to_sheet(
-    amount,
-    rencana_id,
-    account_skkos_id,
-    uraian,
-    judulLaporan,
-    receipt_link,
-    evidence_links,
+    amount: str,
+    rencana_id: str,
+    account_skkos_id: str,
+    uraian: str,
+    judulLaporan: str,
+    receipt_link: str,
+    evidence_links: str,
 ):
     """Append data to the Google Sheet."""
     scope = SCOPES
@@ -230,7 +236,7 @@ def append_to_sheet(
     sheet.insert_row(data_to_append, next_row)
 
 
-def query_from_sheet(sheet_name, column_idx):
+def query_from_sheet(sheet_name: str, column_idx: int) -> list:
     """Retrieve data from a specific column in the sheet."""
     scope = SCOPES
     creds = ServiceAccountCredentials.from_json_keyfile_name(
@@ -253,11 +259,12 @@ def index():
 
 @app.route("/get_rencana_details")
 def get_rencana_details():
-    rencana_id = request.args.get("rencana_id")
+    rencana_id = escape(request.args.get("rencana_id"))
     try:
         data = get_rencana_details_from_sheet(rencana_id)
         return jsonify(data)
     except Exception as e:
+        logger.error(f"Error fetching Rencana details: {str(e)}", exc_info=True)
         return jsonify({"error": str(e)}), 500
 
 
@@ -265,12 +272,12 @@ def get_rencana_details():
 def submit_data():
     try:
         # Access form data
-        rencana_id = request.form.get("rencana_id")
-        account_skkos_id = request.form.get("account_skkos_id")
-        currency = request.form.get("currency")
-        amount = request.form.get("amount")
-        uraian = request.form.get("uraian")
-        judulLaporan = request.form.get("judulLaporan")
+        rencana_id = escape(request.form.get("rencana_id"))
+        account_skkos_id = escape(request.form.get("account_skkos_id"))
+        currency = escape(request.form.get("currency"))
+        amount = escape(request.form.get("amount"))
+        uraian = escape(request.form.get("uraian"))
+        judulLaporan = escape(request.form.get("judulLaporan"))
         receipt_link = request.form.get("receipt_link")  # Link from Receipt API
         evidence_links = request.form.get("evidence_links")  # Comma-separated links
 
@@ -294,7 +301,6 @@ def submit_data():
             payload = {
                 "accountSKKO": account_skkos_id,
                 "extracted_text": extracted_text,
-                # Add other fields if necessary
             }
 
             # Upload the receipt to the external Receipt API
@@ -306,11 +312,15 @@ def submit_data():
                         content_type,
                     )
                 }
-                receipt_api_response = requests.post(
-                    RECEIPT_API_ENDPOINT,
-                    data=payload,  # Send payload as form data
-                    files=files,
-                )
+                try:
+                    receipt_api_response = requests.post(
+                        RECEIPT_API_ENDPOINT,
+                        data=payload,  # Send payload as form data
+                        files=files,
+                        timeout=500,  # Set timeout for the request
+                    )
+                except requests.Timeout:
+                    return jsonify({"error": "Receipt API request timed out."}), 504
 
             if receipt_api_response.status_code == 200:
                 receipt_api_data = receipt_api_response.json()
@@ -324,11 +334,17 @@ def submit_data():
                     session.pop("receipt_content_type", None)
                     session.pop("extracted_text", None)
                 else:
+                    logger.error(
+                        f"Receipt API failed: {receipt_api_data.get('message')}"
+                    )
                     return (
                         jsonify({"error": "Failed to upload receipt to Receipt API."}),
                         500,
                     )
             else:
+                logger.error(
+                    f"Receipt API responded with status code {receipt_api_response.status_code}"
+                )
                 return (
                     jsonify({"error": "Receipt API responded with an error."}),
                     500,
@@ -350,7 +366,7 @@ def submit_data():
             message="Data saved successfully! Files uploaded to Google Drive via APIs.",
         )
     except Exception as e:
-        app.logger.error(f"Error in submit_data: {str(e)}", exc_info=True)
+        logger.error(f"Error in submit_data: {str(e)}", exc_info=True)
         return jsonify(success=False, message=str(e)), 500
 
 
@@ -379,7 +395,7 @@ def fetch_id_rencana():
 
         return jsonify(id_rencana_data), 200
     except Exception as e:
-        app.logger.error(f"Error fetching Id Rencana: {str(e)}", exc_info=True)
+        logger.error(f"Error fetching Id Rencana: {str(e)}", exc_info=True)
         return jsonify({"error": "Error fetching Id Rencana"}), 500
 
 
@@ -393,35 +409,16 @@ def fetch_account_skkos():
         )  # Column A of 'ACCOUNTLIST'
         return jsonify(account_skkos_data), 200
     except Exception as e:
-        app.logger.error(f"Error fetching Account SKKOs: {str(e)}", exc_info=True)
+        logger.error(f"Error fetching Account SKKOs: {str(e)}", exc_info=True)
         return jsonify({"error": "Error fetching Account SKKOs"}), 500
-
-
-# Suggestions route (if needed)
-@app.route("/suggestions", methods=["GET"])
-def get_suggestions():
-    """Provide suggestions for 'uraian' and 'judulLaporan' based on previous entries."""
-    column = request.args.get("column")
-    try:
-        if column == "uraian":
-            data = query_from_sheet("REKAPREALISASI", 8)  # Column H
-        elif column == "judulLaporan":
-            data = query_from_sheet("REKAPREALISASI", 9)  # Column I
-        else:
-            return jsonify({"error": "Invalid column"}), 400
-
-        return jsonify({"suggestions": data}), 200
-    except Exception as e:
-        app.logger.error(f"Error fetching suggestions: {str(e)}", exc_info=True)
-        return jsonify({"error": "Error fetching suggestions"}), 500
 
 
 @app.route("/upload_file", methods=["POST"])
 def upload_file():
     """Handle receipt file upload and extract total_value."""
     try:
-        # **Extract 'accountSKKO' from form data**
-        account_skkos = request.form.get("accountSKKO")
+        # Extract 'accountSKKO' from form data
+        account_skkos = escape(request.form.get("accountSKKO"))
         if not account_skkos:
             return jsonify({"error": "Account SKKO is required."}), 400
 
@@ -434,9 +431,13 @@ def upload_file():
         if file.filename == "":
             return jsonify({"error": "No selected file"}), 400
 
-        # Validate file type
-        if not file.content_type.startswith("image/"):
-            return jsonify({"error": "Invalid file type. Please upload an image."}), 400
+        # Validate file type using imghdr
+        file.seek(0)
+        header = file.read(512)
+        file.seek(0)
+        file_type = imghdr.what(None, header)
+        if not file_type:
+            return jsonify({"error": "Invalid image file."}), 400
 
         # Validate file size (e.g., max 100MB)
         file.seek(0, os.SEEK_END)
@@ -453,9 +454,6 @@ def upload_file():
         temp_filename = generate_temp_filename()
         file_path = os.path.join(app.config["UPLOAD_FOLDER"], temp_filename)
         cv2.imwrite(file_path, image)
-
-        # Clean up old temporary files
-        cleanup_temp_files()
 
         # Load model and set credentials (load once if not already loaded)
         global model, class_names
@@ -519,8 +517,8 @@ def upload_file():
 def upload_evidence():
     """Handle evidence files upload and return their links."""
 
-    # **Extract 'accountSKKO' from form data**
-    account_skkos = request.form.get("accountSKKO")
+    # Extract 'accountSKKO' from form data
+    account_skkos = escape(request.form.get("accountSKKO"))
     if not account_skkos:
         return jsonify({"error": "Account SKKO is required for evidence upload."}), 400
 
@@ -546,12 +544,17 @@ def upload_evidence():
                 )
                 continue  # Skip files with no name
 
-            if not file.content_type.startswith("image/"):
-                logger.warning(f"Skipped non-image file: {file.filename}")
+            # Validate file type using imghdr
+            file.seek(0)
+            header = file.read(512)
+            file.seek(0)
+            file_type = imghdr.what(None, header)
+            if not file_type:
+                logger.warning(f"Skipped invalid image file: {file.filename}")
                 failed_files.append(
-                    {"filename": file.filename, "reason": "Invalid file type."}
+                    {"filename": file.filename, "reason": "Invalid image file."}
                 )
-                continue  # Skip non-image files
+                continue  # Skip invalid image files
 
             # Validate file size (e.g., max 100MB per file)
             file.seek(0, os.SEEK_END)
@@ -594,15 +597,12 @@ def upload_evidence():
 
         # Upload to Evidence API
         try:
-            # If the Evidence API requires authentication, include headers
-            headers = {
-                # "Authorization": "Bearer YOUR_API_TOKEN"  # Uncomment and set if needed
-            }
+            # Include headers if required
+            headers = {}
 
-            # **Include 'accountSKKO' in the data payload**
+            # Include 'accountSKKO' in the data payload
             data_payload = {
-                "accountSKKO": account_skkos,  # Add accountSKKO to payload
-                # Add other fields if required by the Evidence API
+                "accountSKKO": account_skkos,
             }
 
             evidence_api_response = requests.post(
@@ -610,6 +610,7 @@ def upload_evidence():
                 data=data_payload,
                 files=files_payload,
                 headers=headers,
+                timeout=500,  # Set timeout for the request
             )
 
             logger.info(
@@ -694,13 +695,22 @@ def upload_evidence():
                             "reason": f"Evidence API responded with status code {evidence_api_response.status_code}",
                         }
                     )
+        except requests.Timeout:
+            logger.error("Evidence API request timed out.")
+            for file_tuple in files_payload:
+                failed_files.append(
+                    {"filename": file_tuple[1][0], "reason": "Evidence API timeout."}
+                )
         except Exception as e:
             logger.error(
                 f"Exception during upload to Evidence API: {str(e)}", exc_info=True
             )
             for file_tuple in files_payload:
                 failed_files.append(
-                    {"filename": file_tuple[1][0], "reason": "Exception during upload."}
+                    {
+                        "filename": file_tuple[1][0],
+                        "reason": "Exception during upload.",
+                    }
                 )
         finally:
             # Close all opened files and remove temporary files
@@ -726,8 +736,8 @@ def upload_evidence():
                         "failed_files": failed_files,
                     }
                 ),
-                206,
-            )  # HTTP 206 Partial Content
+                207,
+            )  # HTTP 207 Multi-Status
         else:
             # No files uploaded successfully
             return (
@@ -749,4 +759,3 @@ def upload_evidence():
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5151)
-    

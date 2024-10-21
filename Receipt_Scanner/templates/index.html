@@ -56,7 +56,7 @@
           >
             <img
               id="preview"
-              alt="Preview"
+              alt="Receipt Preview"
               class="hidden w-full h-full object-contain"
             />
             <video
@@ -76,6 +76,7 @@
                 stroke="currentColor"
                 stroke-width="1.5"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
               >
                 <path
                   d="M12 11.25v-4.5m0 0L9.75 8.25M12 6.75l2.25 1.5m-6 4.5h9a1.5 1.5 0 010 3h-9a1.5 1.5 0 010-3z"
@@ -101,6 +102,7 @@
             id="accountIdSelect"
             name="accountSKKO"
             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            aria-label="Account SKKO"
           >
             <option value="" selected disabled>Pilih Akun SKKO</option>
           </select>
@@ -148,6 +150,7 @@
             <select
               id="rencanaIdSelect"
               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              aria-label="ID Rencana"
             >
               <option value="" selected disabled>Pilih ID Rencana</option>
             </select>
@@ -164,6 +167,7 @@
               <select
                 id="currencySelect"
                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                aria-label="Mata Uang"
               >
                 <option value="IDR" selected>IDR</option>
                 <option value="USD">USD</option>
@@ -187,6 +191,7 @@
                   id="amountInput"
                   type="number"
                   class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  aria-label="Jumlah"
                 />
               </div>
             </div>
@@ -200,6 +205,7 @@
               id="uraianInput"
               type="text"
               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              aria-label="Uraian"
             />
           </div>
           <div>
@@ -210,6 +216,7 @@
               id="judulLaporanInput"
               type="text"
               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              aria-label="Judul Laporan"
             />
           </div>
         </div>
@@ -241,6 +248,8 @@
     <div
       id="modal"
       class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden"
+      role="dialog"
+      aria-modal="true"
     >
       <div class="bg-white rounded-lg p-6 text-center max-w-sm mx-auto">
         <p id="modalMessage" class="text-gray-800 mb-4"></p>
@@ -257,6 +266,8 @@
     <div
       id="rencanaModal"
       class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden"
+      role="dialog"
+      aria-modal="true"
     >
       <div class="bg-white rounded-lg p-6 text-center max-w-sm mx-auto">
         <h2 class="text-xl font-semibold mb-4">Detail Rencana</h2>
@@ -294,8 +305,8 @@
       const submitButton = document.getElementById("submitButton");
       const rencanaIdSelect = document.getElementById("rencanaIdSelect");
       const accountIdSelect = document.getElementById("accountIdSelect");
-      const currencySelect = document.getElementById("currencySelect"); // New currency select
-      const currencySymbol = document.getElementById("currencySymbol"); // Currency symbol display
+      const currencySelect = document.getElementById("currencySelect");
+      const currencySymbol = document.getElementById("currencySymbol");
       const amountInput = document.getElementById("amountInput");
       const uraianInput = document.getElementById("uraianInput");
       const judulLaporanInput = document.getElementById("judulLaporanInput");
@@ -386,11 +397,15 @@
           scanButtonText.innerText = "Pindai Lagi";
           photoTaken = true;
         } else {
-          preview.classList.add("hidden");
-          video.classList.remove("hidden");
-          scanButtonText.innerText = "Pindai Nota";
-          photoTaken = false;
+          resetCamera();
         }
+      }
+
+      function resetCamera() {
+        preview.classList.add("hidden");
+        video.classList.remove("hidden");
+        scanButtonText.innerText = "Pindai Nota";
+        photoTaken = false;
       }
 
       // Handle file upload for 'Upload Barang'
@@ -441,6 +456,13 @@
         }
       });
 
+      // Sanitize HTML to prevent XSS
+      function sanitizeHTML(str) {
+        const temp = document.createElement("div");
+        temp.textContent = str;
+        return temp.innerHTML;
+      }
+
       // Process receipt image (upload to backend and extract total_value)
       async function processReceiptImage(file) {
         // Show loading spinner
@@ -450,7 +472,7 @@
         const formData = new FormData();
         formData.append("file", file); // Attach the image file
 
-        // **Append the selected `accountSKKO` to FormData**
+        // Append the selected `accountSKKO` to FormData
         const selectedAccountSKKO = accountIdSelect.value;
         if (!selectedAccountSKKO) {
           showModal(
@@ -467,16 +489,13 @@
             body: formData,
           });
 
-          loadingSpinner.classList.add("hidden");
-
           const data = await response.json();
 
           if (response.ok && data.extracted_text) {
             const cleanedAmount = data.extracted_text
               .replace(/[Rp.]/g, "") // Remove "Rp" and dots
-              .replace(/[Jumlah]/g, "")
-              .replace(/[JUMLAH]/g, "")
-              .replace(/[TOTAL]/g, "")
+              .replace(/[Jumlah]/gi, "")
+              .replace(/[Total]/gi, "")
               .replace(/[-]/g, "")
               .replace(/,/g, "") // Remove commas, if any
               .trim(); // Remove any leading/trailing spaces
@@ -489,23 +508,32 @@
           }
         } catch (error) {
           console.error("Error processing receipt:", error);
-          loadingSpinner.classList.add("hidden");
           showModal(
             "There was an error processing the receipt. Please try again."
           );
           submitButton.disabled = true; // Keep the submit button disabled
+        } finally {
+          // Hide loading spinner
+          loadingSpinner.classList.add("hidden");
         }
       }
 
       // Fetch 'Id Rencana' and 'Account SKKO' from backend
       async function fetchData() {
+        // Show loading spinner
+        loadingSpinner.classList.remove("hidden");
         try {
-          const idRencanaData = await fetch("/fetch_id_rencana").then((res) =>
-            res.json()
-          );
-          const accountSkkosData = await fetch("/fetch_account_skkos").then(
-            (res) => res.json()
-          );
+          const [idRencanaResponse, accountSkkosResponse] = await Promise.all([
+            fetch("/fetch_id_rencana"),
+            fetch("/fetch_account_skkos"),
+          ]);
+
+          if (!idRencanaResponse.ok || !accountSkkosResponse.ok) {
+            throw new Error("Failed to fetch dropdown data.");
+          }
+
+          const idRencanaData = await idRencanaResponse.json();
+          const accountSkkosData = await accountSkkosResponse.json();
 
           idRencanaData.forEach((id) => {
             const option = document.createElement("option");
@@ -523,6 +551,9 @@
         } catch (error) {
           console.error("Error fetching data:", error);
           showModal("Error fetching dropdown data. Please try again.");
+        } finally {
+          // Hide loading spinner
+          loadingSpinner.classList.add("hidden");
         }
       }
 
@@ -531,6 +562,9 @@
 
       async function handleRencanaIdChange() {
         const selectedIdRencana = rencanaIdSelect.value;
+
+        // Show loading spinner
+        loadingSpinner.classList.remove("hidden");
 
         // Fetch the details for the selected ID Rencana
         try {
@@ -553,21 +587,31 @@
 
           const formattedNominal = formatter.format(data.nominal);
 
+          // Sanitize data before inserting into the DOM
+          const sanitizedDetails = `
+            <p><strong>Start Date A/R:</strong> ${sanitizeHTML(
+              data.start_date_ar
+            )}</p>
+            <p><strong>End Date A/R:</strong> ${sanitizeHTML(
+              data.end_date_ar
+            )}</p>
+            <p><strong>Requestor:</strong> ${sanitizeHTML(data.requestor)}</p>
+            <p><strong>Unit:</strong> ${sanitizeHTML(data.unit)}</p>
+            <p><strong>Nominal:</strong> ${sanitizeHTML(formattedNominal)}</p>
+            <p><strong>ID Rencana:</strong> ${sanitizeHTML(data.id_rencana)}</p>
+          `;
+
           // Display the details in the modal
-          rencanaDetailsDiv.innerHTML = `
-                  <p><strong>Start Date A/R:</strong> ${data.start_date_ar}</p>
-                  <p><strong>End Date A/R:</strong> ${data.end_date_ar}</p>
-                  <p><strong>Requestor:</strong> ${data.requestor}</p>
-                  <p><strong>Unit:</strong> ${data.unit}</p>
-                  <p><strong>Nominal:</strong> ${formattedNominal}</p>
-                  <p><strong>ID Rencana:</strong> ${data.id_rencana}</p>
-              `;
+          rencanaDetailsDiv.innerHTML = sanitizedDetails;
 
           // Show the modal
           rencanaModal.classList.remove("hidden");
         } catch (error) {
           console.error("Error fetching Rencana details:", error);
           showModal("Error fetching Rencana details. Please try again.");
+        } finally {
+          // Hide loading spinner
+          loadingSpinner.classList.add("hidden");
         }
       }
 
@@ -620,14 +664,8 @@
           evidenceFiles.forEach((file) => {
             evidenceFormData.append("files", file, file.name);
           });
-          // **Append the selected `accountSKKO` to FormData**
+          // Append the selected `accountSKKO` to FormData
           const selectedAccountSKKO = accountIdSelect.value;
-          if (!selectedAccountSKKO) {
-            showModal(
-              "Please select an Account SKKO before uploading evidence files."
-            );
-            return;
-          }
           evidenceFormData.append("accountSKKO", selectedAccountSKKO); // Append accountSKKO
           try {
             const evidenceResponse = await fetch("/upload_evidence", {
@@ -635,9 +673,10 @@
               body: evidenceFormData,
             });
 
+            const evidenceData = await evidenceResponse.json();
+
             if (evidenceResponse.status === 207) {
               // Partial success
-              const evidenceData = await evidenceResponse.json();
               evidenceLinks = evidenceData.evidence_links;
               const failedFiles = evidenceData.failed_files;
               showModal(
@@ -646,7 +685,6 @@
                   .join(", ")}`
               );
             } else if (evidenceResponse.ok) {
-              const evidenceData = await evidenceResponse.json();
               evidenceLinks = evidenceData.evidence_links;
               if (
                 evidenceData.failed_files &&
@@ -662,18 +700,17 @@
                 showModal("Evidence files uploaded successfully!");
               }
             } else {
-              const evidenceData = await evidenceResponse.json();
               throw new Error(
                 evidenceData.error || "Failed to upload evidence files."
               );
             }
           } catch (error) {
             console.error("Error uploading evidence files:", error);
-            loadingSpinner.classList.add("hidden");
             showModal(
               `There was an error uploading evidence files: ${error.message}. Please try again.`
             );
             submitButton.disabled = false; // Re-enable the submit button
+            loadingSpinner.classList.add("hidden");
             return;
           }
         }
@@ -695,8 +732,6 @@
             body: payload,
           });
 
-          loadingSpinner.classList.add("hidden");
-
           const result = await response.json();
 
           if (response.ok && result.success) {
@@ -708,10 +743,11 @@
           }
         } catch (error) {
           console.error("Error during submission:", error);
-          loadingSpinner.classList.add("hidden");
           showModal("There was an error during submission. Please try again.");
         } finally {
-          submitButton.disabled = false; // Re-enable the submit button
+          // Hide loading spinner and re-enable submit button
+          loadingSpinner.classList.add("hidden");
+          submitButton.disabled = false;
         }
       });
 
@@ -732,10 +768,7 @@
         submitButton.disabled = true;
 
         if (photoTaken) {
-          preview.classList.add("hidden");
-          video.classList.remove("hidden");
-          scanButtonText.innerText = "Pindai Nota";
-          photoTaken = false;
+          resetCamera();
         }
 
         // Restart the camera
