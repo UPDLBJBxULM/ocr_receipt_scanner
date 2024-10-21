@@ -471,20 +471,17 @@
 
           const data = await response.json();
 
-          if (response.ok && data.extracted_text && data.receipt_link) {
+          if (response.ok && data.extracted_text) {
             const cleanedAmount = data.extracted_text
               .replace(/[Rp.]/g, "") // Remove "Rp" and dots
+              .replace(/[Jumlah]/g, "")
+              .replace(/[JUMLAH]/g, "")
+              .replace(/[TOTAL]/g, "")
+              .replace(/[-]/g, "")
               .replace(/,/g, "") // Remove commas, if any
               .trim(); // Remove any leading/trailing spaces
             amountInput.value = cleanedAmount;
-            receiptLinkInput.value = data.receipt_link;
-            showModal("Receipt processed and uploaded successfully!");
-            submitButton.disabled = false; // Enable the submit button
-          } else if (response.ok && !data.extracted_text && data.receipt_link) {
-            receiptLinkInput.value = data.receipt_link;
-            showModal(
-              "Receipt uploaded successfully, but no total_value detected."
-            );
+            showModal("Total value extracted successfully!");
             submitButton.disabled = false; // Enable the submit button
           } else {
             showModal(`Error: ${data.error || "Unknown error occurred."}`);
@@ -558,13 +555,13 @@
 
           // Display the details in the modal
           rencanaDetailsDiv.innerHTML = `
-                <p><strong>Start Date A/R:</strong> ${data.start_date_ar}</p>
-                <p><strong>End Date A/R:</strong> ${data.end_date_ar}</p>
-                <p><strong>Requestor:</strong> ${data.requestor}</p>
-                <p><strong>Unit:</strong> ${data.unit}</p>
-                <p><strong>Nominal:</strong> ${formattedNominal}</p>
-                <p><strong>ID Rencana:</strong> ${data.id_rencana}</p>
-            `;
+                  <p><strong>Start Date A/R:</strong> ${data.start_date_ar}</p>
+                  <p><strong>End Date A/R:</strong> ${data.end_date_ar}</p>
+                  <p><strong>Requestor:</strong> ${data.requestor}</p>
+                  <p><strong>Unit:</strong> ${data.unit}</p>
+                  <p><strong>Nominal:</strong> ${formattedNominal}</p>
+                  <p><strong>ID Rencana:</strong> ${data.id_rencana}</p>
+              `;
 
           // Show the modal
           rencanaModal.classList.remove("hidden");
@@ -606,8 +603,7 @@
           !currency ||
           !totalAmount ||
           !uraian ||
-          !judulLaporan ||
-          !receiptLink
+          !judulLaporan
         ) {
           showModal("All fields are required!");
           return;
@@ -733,6 +729,7 @@
         uploadedBarangFiles = [];
         uploadBarangInput.value = "";
         uploadInput.value = "";
+        submitButton.disabled = true;
 
         if (photoTaken) {
           preview.classList.add("hidden");

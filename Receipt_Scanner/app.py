@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 from google.cloud import vision
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, session
 from oauth2client.service_account import ServiceAccountCredentials
 
 # ------------------------ Configuration ------------------------ #
@@ -45,7 +45,8 @@ load_dotenv()
 app = Flask(__name__)
 UPLOAD_FOLDER = "./uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024  # Limit file uploads to 16MB
+app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024  # Limit file uploads to 100MB
+app.secret_key = "your_secret_key"  # Replace with your actual secret key
 
 # Ensure the upload directory exists
 if not os.path.exists(UPLOAD_FOLDER):
@@ -87,8 +88,12 @@ def get_rencana_details_from_sheet(rencana_id):
                 record_id = str(id_value).strip()
             if record_id == str(rencana_id).strip():
                 return {
-                    "start_date_ar": record.get("start date A/R", ""), # menyesuaikan nama column
-                    "end_date_ar": record.get("end date A/R", ""), # menyesuaikan nama column
+                    "start_date_ar": record.get(
+                        "start date A/R", ""
+                    ),  # menyesuaikan nama column
+                    "end_date_ar": record.get(
+                        "end date A/R", ""
+                    ),  # menyesuaikan nama column
                     "requestor": record.get("Requestor", ""),
                     "unit": record.get("Unit", ""),
                     "nominal": record.get("Nominal", ""),
@@ -189,7 +194,13 @@ def extract_text_from_image(cropped_image):
 
 
 def append_to_sheet(
-    amount, rencana_id, account_skkos_id, uraian, judulLaporan, receipt_link, evidence_links
+    amount,
+    rencana_id,
+    account_skkos_id,
+    uraian,
+    judulLaporan,
+    receipt_link,
+    evidence_links,
 ):
     """Append data to the Google Sheet."""
     scope = SCOPES
@@ -260,14 +271,68 @@ def submit_data():
         amount = request.form.get("amount")
         uraian = request.form.get("uraian")
         judulLaporan = request.form.get("judulLaporan")
-        receipt_link = request.form.get("receipt_link")  # Link from /upload_file
+        receipt_link = request.form.get("receipt_link")  # Link from Receipt API
         evidence_links = request.form.get("evidence_links")  # Comma-separated links
 
         # Validate inputs
         if not account_skkos_id:
             return jsonify({"error": "No account_skkos_id provided"}), 400
+
+        # Retrieve necessary data from session
+        file_path = session.get("receipt_file_path")
+        filename = session.get("receipt_filename")
+        content_type = session.get("receipt_content_type")
+        extracted_text = session.get("extracted_text")
+        account_skkos = session.get("accountSKKO")
+
         if not receipt_link:
-            return jsonify({"error": "No receipt link provided"}), 400
+            # Upload the receipt to the Receipt API
+            if not file_path or not filename or not content_type:
+                return jsonify({"error": "No receipt file found to upload."}), 400
+
+            # Prepare additional data to send to Receipt API
+            payload = {
+                "accountSKKO": account_skkos_id,
+                "extracted_text": extracted_text,
+                # Add other fields if necessary
+            }
+
+            # Upload the receipt to the external Receipt API
+            with open(file_path, "rb") as receipt_file:
+                files = {
+                    "file": (
+                        secure_filename(filename),
+                        receipt_file,
+                        content_type,
+                    )
+                }
+                receipt_api_response = requests.post(
+                    RECEIPT_API_ENDPOINT,
+                    data=payload,  # Send payload as form data
+                    files=files,
+                )
+
+            if receipt_api_response.status_code == 200:
+                receipt_api_data = receipt_api_response.json()
+                if receipt_api_data.get("status") == "success":
+                    receipt_link = receipt_api_data["data"]["fileLink"]
+                    # Remove the temporary file after upload
+                    os.remove(file_path)
+                    # Remove file info from session
+                    session.pop("receipt_file_path", None)
+                    session.pop("receipt_filename", None)
+                    session.pop("receipt_content_type", None)
+                    session.pop("extracted_text", None)
+                else:
+                    return (
+                        jsonify({"error": "Failed to upload receipt to Receipt API."}),
+                        500,
+                    )
+            else:
+                return (
+                    jsonify({"error": "Receipt API responded with an error."}),
+                    500,
+                )
 
         # Append data to Google Sheet
         append_to_sheet(
@@ -353,9 +418,8 @@ def get_suggestions():
 
 @app.route("/upload_file", methods=["POST"])
 def upload_file():
-    """Handle receipt file upload, extract total_value, and upload to Receipt API."""
+    """Handle receipt file upload and extract total_value."""
     try:
-
         # **Extract 'accountSKKO' from form data**
         account_skkos = request.form.get("accountSKKO")
         if not account_skkos:
@@ -374,11 +438,11 @@ def upload_file():
         if not file.content_type.startswith("image/"):
             return jsonify({"error": "Invalid file type. Please upload an image."}), 400
 
-        # Validate file size (e.g., max 5MB)
+        # Validate file size (e.g., max 100MB)
         file.seek(0, os.SEEK_END)
         file_length = file.tell()
-        if file_length > 5 * 1024 * 1024:
-            return jsonify({"error": "File size exceeds 5MB limit."}), 400
+        if file_length > 100 * 1024 * 1024:
+            return jsonify({"error": "File size exceeds 100MB limit."}), 400
         file.seek(0)
 
         # Read the image file as a NumPy array for OpenCV
@@ -410,56 +474,24 @@ def upload_file():
                 extracted_text = extract_text_from_image(cropped_img)
                 logger.info(f"Extracted Text: {extracted_text}")
 
-                # **Prepare additional data to send to Receipt API**
-                payload = {
-                    "accountSKKO": account_skkos,  # Include the account ID
-                    "extracted_text": extracted_text,
-                    # Add other fields if necessary
-                }
+                # Store necessary data in session for later use
+                session["receipt_file_path"] = file_path
+                session["receipt_filename"] = file.filename
+                session["receipt_content_type"] = file.content_type
+                session["extracted_text"] = extracted_text
+                session["accountSKKO"] = account_skkos
 
-                # Upload the receipt to the external Receipt API
-                with open(file_path, "rb") as receipt_file:
-                    files = {
-                        "file": (
-                            secure_filename(file.filename),
-                            receipt_file,
-                            file.content_type,
-                        )
-                    }
-                    receipt_api_response = requests.post(
-                        RECEIPT_API_ENDPOINT,
-                        data=payload,  # Send payload as form data
-                        files=files,
-                    )
-
-                if receipt_api_response.status_code == 200:
-                    receipt_api_data = receipt_api_response.json()
-                    if receipt_api_data.get("status") == "success":
-                        receipt_link = receipt_api_data["data"]["fileLink"]
-                        # Remove the temporary file after upload
-                        os.remove(file_path)
-                        return (
-                            jsonify(
-                                {
-                                    "extracted_text": extracted_text,
-                                    "receipt_link": receipt_link,
-                                    "accountSKKO": account_skkos,  # Optionally return it
-                                }
-                            ),
-                            200,
-                        )
-                    else:
-                        return (
-                            jsonify(
-                                {"error": "Failed to upload receipt to Receipt API."}
-                            ),
-                            500,
-                        )
-                else:
-                    return (
-                        jsonify({"error": "Receipt API responded with an error."}),
-                        500,
-                    )
+                # Return the extracted_text to the frontend
+                return (
+                    jsonify(
+                        {
+                            "extracted_text": extracted_text,
+                            "accountSKKO": account_skkos,
+                            "message": "Total value extracted successfully.",
+                        }
+                    ),
+                    200,
+                )
             else:
                 # Remove the temporary file if no total_value detected
                 os.remove(file_path)
@@ -467,7 +499,6 @@ def upload_file():
                     jsonify(
                         {
                             "error": "No total_value detected in the receipt.",
-                            "receipt_link": "",
                         }
                     ),
                     404,
@@ -522,10 +553,10 @@ def upload_evidence():
                 )
                 continue  # Skip non-image files
 
-            # Validate file size (e.g., max 5MB per file)
+            # Validate file size (e.g., max 100MB per file)
             file.seek(0, os.SEEK_END)
             file_length = file.tell()
-            if file_length > 5 * 1024 * 1024:
+            if file_length > 100 * 1024 * 1024:  # Maximum Size Evidence
                 logger.warning(f"Skipped file exceeding size limit: {file.filename}")
                 failed_files.append(
                     {"filename": file.filename, "reason": "File size exceeds limit."}
@@ -718,3 +749,4 @@ def upload_evidence():
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5151)
+    
