@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       /* Custom styles */
+
+      /* Adjusted body background color */
       body {
         background-color: #f3f4f6; /* Light gray background */
       }
@@ -45,23 +47,32 @@
       .step.active {
         display: block;
       }
+
+      /* Adjusted container to fit viewport and added padding */
+      .container {
+        max-height: calc(100vh - 2rem); /* Adjust for padding */
+        margin: 1rem; /* Added margin for top and bottom */
+      }
     </style>
   </head>
-  <body class="flex items-center justify-center min-h-screen">
+  <body class="bg-gray-100">
     <!-- Container -->
-    <div class="bg-white shadow-md rounded-lg max-w-md w-full">
+    <div
+      class="container bg-white shadow-md rounded-lg max-w-md w-full mx-auto flex flex-col"
+    >
       <!-- Header -->
       <div class="bg-[#10ace4] text-white text-center py-4 rounded-t-lg">
         <h1 class="text-xl font-semibold">Receipt Scanner</h1>
       </div>
 
       <!-- Content -->
-      <div class="p-6">
+      <div class="p-6 overflow-y-auto flex-grow">
         <!-- Multi-Step Form -->
-        <!-- Step 1: Upload or Scan Receipt -->
+        <!-- Step 1: Upload or Scan Receipt and Confirm Amount -->
         <div id="step1" class="step active">
           <p class="text-gray-700 mb-4">
-            Step 1: Please upload or scan your receipt to begin.
+            Step 1: Please upload or scan your receipt and confirm the extracted
+            amount.
           </p>
           <!-- Image/Video Container -->
           <div class="relative mb-4">
@@ -128,23 +139,7 @@
               Upload Receipt
             </label>
           </div>
-          <!-- Navigation Buttons -->
-          <div class="flex space-x-2">
-            <button
-              id="nextToStep2"
-              class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 focus:outline-none disabled:opacity-50"
-              disabled
-            >
-              Next
-            </button>
-          </div>
-        </div>
 
-        <!-- Step 2: Confirm Extracted Amount -->
-        <div id="step2" class="step">
-          <p class="text-gray-700 mb-4">
-            Step 2: Confirm the extracted amount. You can edit if necessary.
-          </p>
           <!-- Currency and Amount Input -->
           <div class="flex justify-between space-x-4 mb-4">
             <!-- Currency Select on the left -->
@@ -189,27 +184,23 @@
               </div>
             </div>
           </div>
+
           <!-- Navigation Buttons -->
           <div class="flex space-x-2">
             <button
-              id="backToStep1"
-              class="flex-1 bg-gray-600 text-white py-2 rounded-lg hover:bg-gray-700 focus:outline-none"
-            >
-              Back
-            </button>
-            <button
-              id="nextToStep3"
-              class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 focus:outline-none"
+              id="nextToStep2"
+              class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 focus:outline-none disabled:opacity-50"
+              disabled
             >
               Next
             </button>
           </div>
         </div>
 
-        <!-- Step 3: Fill Additional Details -->
-        <div id="step3" class="step">
+        <!-- Step 2: Fill Additional Details -->
+        <div id="step2" class="step">
           <p class="text-gray-700 mb-4">
-            Step 3: Please provide additional details.
+            Step 2: Please provide additional details.
           </p>
           <!-- Upload Evidence Files -->
           <div class="mb-4">
@@ -308,13 +299,13 @@
           <!-- Navigation Buttons -->
           <div class="flex space-x-2">
             <button
-              id="backToStep2"
+              id="backToStep1"
               class="flex-1 bg-gray-600 text-white py-2 rounded-lg hover:bg-gray-700 focus:outline-none"
             >
               Back
             </button>
             <button
-              id="nextToStep4"
+              id="nextToStep3"
               class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 focus:outline-none"
             >
               Next
@@ -322,10 +313,10 @@
           </div>
         </div>
 
-        <!-- Step 4: Review and Submit -->
-        <div id="step4" class="step">
+        <!-- Step 3: Review and Submit -->
+        <div id="step3" class="step">
           <p class="text-gray-700 mb-4">
-            Step 4: Review your information before submitting.
+            Step 3: Review your information before submitting.
           </p>
           <!-- Display Review Information -->
           <div id="reviewInfo" class="mb-4">
@@ -334,7 +325,7 @@
           <!-- Navigation Buttons -->
           <div class="flex space-x-2">
             <button
-              id="backToStep3"
+              id="backToStep2"
               class="flex-1 bg-gray-600 text-white py-2 rounded-lg hover:bg-gray-700 focus:outline-none"
             >
               Back
@@ -417,11 +408,11 @@
     </div>
 
     <script>
-      // JavaScript Code for Multi-Step Form and Improved User Flow
+      // JavaScript Code for 3-Step Form and Adjusted User Flow
 
       // Step Navigation
       let currentStep = 1;
-      const totalSteps = 4;
+      const totalSteps = 3;
 
       function showStep(step) {
         document.querySelectorAll(".step").forEach((stepDiv) => {
@@ -462,10 +453,8 @@
 
       const nextToStep2 = document.getElementById("nextToStep2");
       const nextToStep3 = document.getElementById("nextToStep3");
-      const nextToStep4 = document.getElementById("nextToStep4");
       const backToStep1 = document.getElementById("backToStep1");
       const backToStep2 = document.getElementById("backToStep2");
-      const backToStep3 = document.getElementById("backToStep3");
 
       const amountError = document.getElementById("amountError");
       const accountError = document.getElementById("accountError");
@@ -769,16 +758,6 @@
 
       // Step Navigation Handlers
       nextToStep2.addEventListener("click", () => {
-        currentStep++;
-        showStep(currentStep);
-      });
-
-      backToStep1.addEventListener("click", () => {
-        currentStep--;
-        showStep(currentStep);
-      });
-
-      nextToStep3.addEventListener("click", () => {
         // Validate amount input
         if (
           !amountInput.value ||
@@ -794,12 +773,12 @@
         showStep(currentStep);
       });
 
-      backToStep2.addEventListener("click", () => {
+      backToStep1.addEventListener("click", () => {
         currentStep--;
         showStep(currentStep);
       });
 
-      nextToStep4.addEventListener("click", () => {
+      nextToStep3.addEventListener("click", () => {
         // Validate required fields
         let hasError = false;
 
@@ -856,7 +835,7 @@
         submitButton.disabled = false; // Enable submit button
       });
 
-      backToStep3.addEventListener("click", () => {
+      backToStep2.addEventListener("click", () => {
         currentStep--;
         showStep(currentStep);
       });
