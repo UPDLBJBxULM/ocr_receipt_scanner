@@ -17,7 +17,7 @@ Aplikasi **Receipt Scanner** adalah aplikasi web berbasis Flask yang memungkinka
 ## Fitur
 
 - **Pindai atau Unggah Nota**: Pengguna dapat menggunakan kamera perangkat untuk memindai nota atau mengunggah gambar nota dari perangkat mereka.
-- **Ekstraksi Total Jumlah**: Aplikasi menggunakan model YOLOv8 dan Google Cloud Vision OCR untuk mengekstrak total jumlah dari gambar nota.
+- **Ekstraksi Total Jumlah**: Aplikasi menggunakan model YOLOv11 dan Google Cloud Vision OCR untuk mengekstrak total jumlah dari gambar nota.
 - **Formulir Multi-Langkah**: Proses input data dibagi menjadi tiga langkah untuk memandu pengguna melalui proses dengan lebih efisien.
 - **Validasi dan Umpan Balik**: Validasi input dilakukan di sisi klien dan server, dengan pesan kesalahan yang jelas untuk membantu pengguna.
 - **Integrasi Google Sheets**: Data yang dikumpulkan dikirim dan disimpan ke Google Sheet yang telah ditentukan.
