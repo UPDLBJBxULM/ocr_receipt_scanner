@@ -94,19 +94,6 @@
           </div>
         </div>
 
-        <div class="mb-4">
-          <label for="accountIdSelect" class="block text-gray-700 mb-1"
-            >Account SKKO</label
-          >
-          <select
-            id="accountIdSelect"
-            name="accountSKKO"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            aria-label="Account SKKO"
-          >
-            <option value="" selected disabled>Pilih Akun SKKO</option>
-          </select>
-        </div>
         <!-- Buttons -->
         <div class="flex space-x-2 mb-4">
           <button
@@ -124,38 +111,9 @@
           </label>
         </div>
 
-        <!-- Upload Barang Button -->
-        <div class="mb-4">
-          <input
-            id="uploadBarangInput"
-            type="file"
-            accept="image/*"
-            multiple
-            class="hidden"
-          />
-          <label
-            for="uploadBarangInput"
-            class="w-full bg-gray-200 text-gray-700 py-2 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-300"
-          >
-            Unggah Foto Barang
-          </label>
-        </div>
-
         <!-- Form Fields -->
         <div class="space-y-2">
-          <div>
-            <label for="rencanaIdSelect" class="block text-gray-700 mb-1"
-              >ID Rencana</label
-            >
-            <select
-              id="rencanaIdSelect"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              aria-label="ID Rencana"
-            >
-              <option value="" selected disabled>Pilih ID Rencana</option>
-            </select>
-          </div>
-          <!-- Currency Select -->
+          <!-- Currency and Amount Input -->
           <div class="flex justify-between space-x-4">
             <!-- Currency Select on the left -->
             <div class="w-1/4">
@@ -197,6 +155,47 @@
             </div>
           </div>
 
+          <!-- Upload Barang Button -->
+          <div class="mb-4">
+            <input
+              id="evidenceFilesInput"
+              type="file"
+              accept="image/*"
+              multiple
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          <!-- Account SKKO Selection -->
+          <div class="mb-4">
+            <label for="accountIdSelect" class="block text-gray-700 mb-1"
+              >Account SKKO</label
+            >
+            <select
+              id="accountIdSelect"
+              name="accountSKKO"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              aria-label="Account SKKO"
+            >
+              <option value="" selected disabled>Pilih Akun SKKO</option>
+            </select>
+          </div>
+
+          <!-- ID Rencana Selection -->
+          <div>
+            <label for="rencanaIdSelect" class="block text-gray-700 mb-1"
+              >ID Rencana</label
+            >
+            <select
+              id="rencanaIdSelect"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              aria-label="ID Rencana"
+            >
+              <option value="" selected disabled>Pilih ID Rencana</option>
+            </select>
+          </div>
+
+          <!-- Uraian Input -->
           <div>
             <label for="uraianInput" class="block text-gray-700 mb-1"
               >Uraian</label
@@ -208,6 +207,8 @@
               aria-label="Uraian"
             />
           </div>
+
+          <!-- Judul Laporan Input -->
           <div>
             <label for="judulLaporanInput" class="block text-gray-700 mb-1"
               >Judul Laporan</label
@@ -297,7 +298,7 @@
       // Updated variable references
       const video = document.getElementById("video");
       const uploadInput = document.getElementById("uploadInput");
-      const uploadBarangInput = document.getElementById("uploadBarangInput");
+      const evidenceFilesInput = document.getElementById("evidenceFilesInput");
       const preview = document.getElementById("preview");
       const placeholder = document.getElementById("placeholder");
       const scanButton = document.getElementById("scanButton");
@@ -322,7 +323,6 @@
       const rencanaNoButton = document.getElementById("rencanaNoButton");
       const rencanaYesButton = document.getElementById("rencanaYesButton");
 
-      let uploadedBarangFiles = []; // Array to store uploaded 'Barang' files
       let stream;
       let photoTaken = false;
 
@@ -408,18 +408,6 @@
         photoTaken = false;
       }
 
-      // Handle file upload for 'Upload Barang'
-      uploadBarangInput.addEventListener("change", () => {
-        const files = Array.from(uploadBarangInput.files);
-
-        if (files.length > 0) {
-          uploadedBarangFiles = files; // Store the selected files
-          showModal(`${files.length} file(s) selected for 'Upload Barang'.`);
-        } else {
-          uploadedBarangFiles = [];
-        }
-      });
-
       // Handle file upload for receipt
       uploadInput.addEventListener("change", () => {
         const file = uploadInput.files[0];
@@ -471,17 +459,6 @@
 
         const formData = new FormData();
         formData.append("file", file); // Attach the image file
-
-        // Append the selected `accountSKKO` to FormData
-        const selectedAccountSKKO = accountIdSelect.value;
-        if (!selectedAccountSKKO) {
-          showModal(
-            "Please select an Account SKKO before uploading the receipt."
-          );
-          loadingSpinner.classList.add("hidden");
-          return;
-        }
-        formData.append("accountSKKO", selectedAccountSKKO); // Append the selected account
 
         try {
           const response = await fetch("/upload_file", {
@@ -637,8 +614,8 @@
         const totalAmount = amountInput.value;
         const uraian = uraianInput.value;
         const judulLaporan = judulLaporanInput.value;
+        const evidenceFiles = evidenceFilesInput.files;
         const receiptLink = receiptLinkInput.value;
-        const evidenceFiles = uploadedBarangFiles;
 
         // Check for empty fields before submission
         if (
@@ -657,64 +634,6 @@
         loadingSpinner.classList.remove("hidden");
         submitButton.disabled = true; // Disable the submit button to prevent multiple submissions
 
-        // Upload evidence files to backend
-        let evidenceLinks = [];
-        if (evidenceFiles.length > 0) {
-          const evidenceFormData = new FormData();
-          evidenceFiles.forEach((file) => {
-            evidenceFormData.append("files", file, file.name);
-          });
-          // Append the selected `accountSKKO` to FormData
-          const selectedAccountSKKO = accountIdSelect.value;
-          evidenceFormData.append("accountSKKO", selectedAccountSKKO); // Append accountSKKO
-          try {
-            const evidenceResponse = await fetch("/upload_evidence", {
-              method: "POST",
-              body: evidenceFormData,
-            });
-
-            const evidenceData = await evidenceResponse.json();
-
-            if (evidenceResponse.status === 207) {
-              // Partial success
-              evidenceLinks = evidenceData.evidence_links;
-              const failedFiles = evidenceData.failed_files;
-              showModal(
-                `Some evidence files failed to upload: ${failedFiles
-                  .map((f) => `${f.filename} (${f.reason})`)
-                  .join(", ")}`
-              );
-            } else if (evidenceResponse.ok) {
-              evidenceLinks = evidenceData.evidence_links;
-              if (
-                evidenceData.failed_files &&
-                evidenceData.failed_files.length > 0
-              ) {
-                const failedFiles = evidenceData.failed_files;
-                showModal(
-                  `Some evidence files failed to upload: ${failedFiles
-                    .map((f) => `${f.filename} (${f.reason})`)
-                    .join(", ")}`
-                );
-              } else {
-                showModal("Evidence files uploaded successfully!");
-              }
-            } else {
-              throw new Error(
-                evidenceData.error || "Failed to upload evidence files."
-              );
-            }
-          } catch (error) {
-            console.error("Error uploading evidence files:", error);
-            showModal(
-              `There was an error uploading evidence files: ${error.message}. Please try again.`
-            );
-            submitButton.disabled = false; // Re-enable the submit button
-            loadingSpinner.classList.add("hidden");
-            return;
-          }
-        }
-
         // Prepare data to send to the backend
         const payload = new FormData();
         payload.append("rencana_id", selectedIdRencana);
@@ -723,8 +642,13 @@
         payload.append("amount", totalAmount);
         payload.append("uraian", uraian);
         payload.append("judulLaporan", judulLaporan);
-        payload.append("receipt_link", receiptLink);
-        payload.append("evidence_links", evidenceLinks.join(", "));
+
+        // Append evidence files to the payload
+        if (evidenceFiles.length > 0) {
+          for (let i = 0; i < evidenceFiles.length; i++) {
+            payload.append("evidence_files", evidenceFiles[i]);
+          }
+        }
 
         try {
           const response = await fetch("/submit", {
@@ -762,8 +686,7 @@
         judulLaporanInput.value = "";
         receiptLinkInput.value = "";
         evidenceLinksInput.value = "";
-        uploadedBarangFiles = [];
-        uploadBarangInput.value = "";
+        evidenceFilesInput.value = "";
         uploadInput.value = "";
         submitButton.disabled = true;
 
