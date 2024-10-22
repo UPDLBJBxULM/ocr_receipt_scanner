@@ -189,4 +189,4 @@ Aplikasi ini dilisensikan di bawah [MIT License](LICENSE). Anda bebas untuk meng
 
 ---
 
-Jika Anda memiliki pertanyaan atau membutuhkan bantuan lebih lanjut, silakan hubungi pengembang melalui [email@example.com](mailto:email@example.com).
+Jika Anda memiliki pertanyaan atau membutuhkan bantuan lebih lanjut, silakan hubungi pengembang melalui [email@example.com](2111016210009@mhs.ulm.ac.id).
