@@ -30,7 +30,7 @@ Aplikasi **Receipt Scanner** adalah aplikasi web berbasis Flask yang memungkinka
 - Paket dan library Python yang diperlukan (lihat bagian Instalasi)
 - Akun Google Cloud dengan API Vision diaktifkan
 - Kredensial layanan (Service Account) untuk Google Cloud dan Google Sheets
-- Model YOLOv8 yang telah dilatih
+- Model YOLOv11 yang telah dilatih
 - Koneksi internet untuk mengakses API eksternal dan layanan Google
 
 ## Instalasi
@@ -40,7 +40,7 @@ Ikuti langkah-langkah berikut untuk menginstal dan menjalankan aplikasi:
 1. **Clone Repository**
 
    ```bash
-   git clone https://github.com/username/receipt-scanner.git
+   git clone https://github.com/UPDLBJBxULM/ocr_receipt_scanner.git
    cd receipt-scanner
    ```
 
@@ -64,9 +64,9 @@ Ikuti langkah-langkah berikut untuk menginstal dan menjalankan aplikasi:
 
    **Catatan**: Pastikan file `requirements.txt` berisi semua paket yang diperlukan seperti Flask, ultralytics, google-cloud-vision, gspread, oauth2client, dll.
 
-4. **Pasang Model YOLOv8**
+4. **Pasang Model YOLOv11**
 
-   Pastikan Anda memiliki model YOLOv8 yang telah dilatih dan simpan di path yang akan digunakan dalam konfigurasi.
+   Pastikan Anda memiliki model YOLOv11 yang telah dilatih dan simpan di path yang akan digunakan dalam konfigurasi.
 
 ## Konfigurasi
 
@@ -116,7 +116,8 @@ Aplikasi akan berjalan pada `http://0.0.0.0:5151` secara default. Buka browser d
 ```
 receipt-scanner/
 ├── app.py
-├── index.html
+├── templates/
+│   └── index.html
 ├── requirements.txt
 ├── .env
 ├── uploads/
