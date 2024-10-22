@@ -37,6 +37,14 @@
         -ms-overflow-style: none;
         scrollbar-width: none;
       }
+
+      /* Step Navigation */
+      .step {
+        display: none;
+      }
+      .step.active {
+        display: block;
+      }
     </style>
   </head>
   <body class="flex items-center justify-center min-h-screen">
@@ -49,83 +57,107 @@
 
       <!-- Content -->
       <div class="p-6">
-        <!-- Image/Video Container -->
-        <div class="relative mb-4">
-          <div
-            class="border border-gray-300 rounded-lg overflow-hidden h-64 flex items-center justify-center bg-gray-100"
-          >
-            <img
-              id="preview"
-              alt="Receipt Preview"
-              class="hidden w-full h-full object-contain"
-            />
-            <video
-              id="video"
-              class="hidden w-full h-full object-contain"
-              autoplay
-              playsinline
-            ></video>
-            <!-- Placeholder Icon -->
+        <!-- Multi-Step Form -->
+        <!-- Step 1: Upload or Scan Receipt -->
+        <div id="step1" class="step active">
+          <p class="text-gray-700 mb-4">
+            Step 1: Please upload or scan your receipt to begin.
+          </p>
+          <!-- Image/Video Container -->
+          <div class="relative mb-4">
             <div
-              id="placeholder"
-              class="text-gray-400 flex flex-col items-center"
+              class="border border-gray-300 rounded-lg overflow-hidden h-64 flex items-center justify-center bg-gray-100"
             >
-              <svg
-                class="w-16 h-16 mb-2"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
+              <img
+                id="preview"
+                alt="Receipt Preview"
+                class="hidden w-full h-full object-contain"
+              />
+              <video
+                id="video"
+                class="hidden w-full h-full object-contain"
+                autoplay
+                playsinline
+              ></video>
+              <!-- Placeholder Icon -->
+              <div
+                id="placeholder"
+                class="text-gray-400 flex flex-col items-center"
               >
-                <path
-                  d="M12 11.25v-4.5m0 0L9.75 8.25M12 6.75l2.25 1.5m-6 4.5h9a1.5 1.5 0 010 3h-9a1.5 1.5 0 010-3z"
-                ></path>
-              </svg>
-              <p class="text-sm">No image selected</p>
+                <svg
+                  class="w-16 h-16 mb-2"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M12 11.25v-4.5m0 0L9.75 8.25M12 6.75l2.25 1.5m-6 4.5h9a1.5 1.5 0 010 3h-9a1.5 1.5 0 010-3z"
+                  ></path>
+                </svg>
+                <p class="text-sm">No image selected</p>
+              </div>
+            </div>
+            <!-- Loading Spinner -->
+            <div
+              id="loadingSpinner"
+              class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 hidden"
+            >
+              <div class="spinner"></div>
             </div>
           </div>
-          <!-- Loading Spinner -->
-          <div
-            id="loadingSpinner"
-            class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 hidden"
-          >
-            <div class="spinner"></div>
+          <!-- Buttons -->
+          <div class="flex space-x-2 mb-4">
+            <button
+              id="scanButton"
+              class="flex-1 bg-[#10ace4] text-white py-2 rounded-lg hover:bg-indigo-700 focus:outline-none"
+            >
+              <span id="scanButtonText">Scan Receipt</span>
+            </button>
+            <input
+              id="uploadInput"
+              type="file"
+              accept="image/*"
+              class="hidden"
+            />
+            <label
+              for="uploadInput"
+              class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-300"
+            >
+              Upload Receipt
+            </label>
+          </div>
+          <!-- Navigation Buttons -->
+          <div class="flex space-x-2">
+            <button
+              id="nextToStep2"
+              class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 focus:outline-none disabled:opacity-50"
+              disabled
+            >
+              Next
+            </button>
           </div>
         </div>
 
-        <!-- Buttons -->
-        <div class="flex space-x-2 mb-4">
-          <button
-            id="scanButton"
-            class="flex-1 bg-[#10ace4] text-white py-2 rounded-lg hover:bg-indigo-700 focus:outline-none"
-          >
-            <span id="scanButtonText">Pindai Nota</span>
-          </button>
-          <input id="uploadInput" type="file" accept="image/*" class="hidden" />
-          <label
-            for="uploadInput"
-            class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-300"
-          >
-            Unggah Nota
-          </label>
-        </div>
-
-        <!-- Form Fields -->
-        <div class="space-y-2">
+        <!-- Step 2: Confirm Extracted Amount -->
+        <div id="step2" class="step">
+          <p class="text-gray-700 mb-4">
+            Step 2: Confirm the extracted amount. You can edit if necessary.
+          </p>
           <!-- Currency and Amount Input -->
-          <div class="flex justify-between space-x-4">
+          <div class="flex justify-between space-x-4 mb-4">
             <!-- Currency Select on the left -->
             <div class="w-1/4">
               <label
                 for="currencySelect"
                 class="block text-gray-700 mb-1 text-left"
-                >Mata Uang</label
+                >Currency <span class="text-red-500">*</span></label
               >
               <select
                 id="currencySelect"
                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                aria-label="Mata Uang"
+                aria-label="Currency"
               >
                 <option value="IDR" selected>IDR</option>
                 <option value="USD">USD</option>
@@ -137,7 +169,7 @@
               <label
                 for="amountInput"
                 class="block text-gray-700 mb-1 text-left"
-                >Jumlah</label
+                >Amount <span class="text-red-500">*</span></label
               >
               <div class="flex">
                 <span
@@ -149,14 +181,41 @@
                   id="amountInput"
                   type="number"
                   class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  aria-label="Jumlah"
+                  aria-label="Amount"
                 />
+              </div>
+              <div id="amountError" class="text-red-500 text-sm hidden">
+                Please enter a valid amount.
               </div>
             </div>
           </div>
+          <!-- Navigation Buttons -->
+          <div class="flex space-x-2">
+            <button
+              id="backToStep1"
+              class="flex-1 bg-gray-600 text-white py-2 rounded-lg hover:bg-gray-700 focus:outline-none"
+            >
+              Back
+            </button>
+            <button
+              id="nextToStep3"
+              class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 focus:outline-none"
+            >
+              Next
+            </button>
+          </div>
+        </div>
 
-          <!-- Upload Barang Button -->
+        <!-- Step 3: Fill Additional Details -->
+        <div id="step3" class="step">
+          <p class="text-gray-700 mb-4">
+            Step 3: Please provide additional details.
+          </p>
+          <!-- Upload Evidence Files -->
           <div class="mb-4">
+            <label for="evidenceFilesInput" class="block text-gray-700 mb-1"
+              >Upload Evidence Files (Optional)</label
+            >
             <input
               id="evidenceFilesInput"
               type="file"
@@ -165,78 +224,129 @@
               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
-
           <!-- Account SKKO Selection -->
           <div class="mb-4">
             <label for="accountIdSelect" class="block text-gray-700 mb-1"
-              >Account SKKO</label
-            >
+              >Account SKKO <span class="text-red-500">*</span>
+              <span
+                class="tooltip"
+                data-tooltip="Select the appropriate Account SKKO from the list."
+                >ⓘ</span
+              >
+            </label>
             <select
               id="accountIdSelect"
               name="accountSKKO"
               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               aria-label="Account SKKO"
             >
-              <option value="" selected disabled>Pilih Akun SKKO</option>
+              <option value="" selected disabled>Select Account SKKO</option>
             </select>
+            <div id="accountError" class="text-red-500 text-sm hidden">
+              Please select an Account SKKO.
+            </div>
           </div>
-
           <!-- ID Rencana Selection -->
-          <div>
+          <div class="mb-4">
             <label for="rencanaIdSelect" class="block text-gray-700 mb-1"
-              >ID Rencana</label
-            >
+              >ID Rencana <span class="text-red-500">*</span>
+              <span
+                class="tooltip"
+                data-tooltip="Select the appropriate ID Rencana from the list."
+                >ⓘ</span
+              >
+            </label>
             <select
               id="rencanaIdSelect"
               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               aria-label="ID Rencana"
             >
-              <option value="" selected disabled>Pilih ID Rencana</option>
+              <option value="" selected disabled>Select ID Rencana</option>
             </select>
+            <div id="rencanaError" class="text-red-500 text-sm hidden">
+              Please select an ID Rencana.
+            </div>
           </div>
-
           <!-- Uraian Input -->
-          <div>
+          <div class="mb-4">
             <label for="uraianInput" class="block text-gray-700 mb-1"
-              >Uraian</label
-            >
+              >Uraian <span class="text-red-500">*</span>
+              <span
+                class="tooltip"
+                data-tooltip="Provide a description for the transaction."
+                >ⓘ</span
+              >
+            </label>
             <input
               id="uraianInput"
               type="text"
               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               aria-label="Uraian"
             />
+            <div id="uraianError" class="text-red-500 text-sm hidden">
+              Please enter Uraian.
+            </div>
           </div>
-
           <!-- Judul Laporan Input -->
-          <div>
+          <div class="mb-4">
             <label for="judulLaporanInput" class="block text-gray-700 mb-1"
-              >Judul Laporan</label
-            >
+              >Judul Laporan <span class="text-red-500">*</span>
+              <span class="tooltip" data-tooltip="Provide the report title."
+                >ⓘ</span
+              >
+            </label>
             <input
               id="judulLaporanInput"
               type="text"
               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               aria-label="Judul Laporan"
             />
+            <div id="judulError" class="text-red-500 text-sm hidden">
+              Please enter Judul Laporan.
+            </div>
+          </div>
+          <!-- Navigation Buttons -->
+          <div class="flex space-x-2">
+            <button
+              id="backToStep2"
+              class="flex-1 bg-gray-600 text-white py-2 rounded-lg hover:bg-gray-700 focus:outline-none"
+            >
+              Back
+            </button>
+            <button
+              id="nextToStep4"
+              class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 focus:outline-none"
+            >
+              Next
+            </button>
           </div>
         </div>
 
-        <!-- Submit and Reset Buttons -->
-        <div class="flex space-x-2 mt-6">
-          <button
-            id="resetButton"
-            class="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 focus:outline-none"
-          >
-            Reset
-          </button>
-          <button
-            id="submitButton"
-            class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 focus:outline-none disabled:opacity-50"
-            disabled
-          >
-            Kirim
-          </button>
+        <!-- Step 4: Review and Submit -->
+        <div id="step4" class="step">
+          <p class="text-gray-700 mb-4">
+            Step 4: Review your information before submitting.
+          </p>
+          <!-- Display Review Information -->
+          <div id="reviewInfo" class="mb-4">
+            <!-- Review content will be injected here -->
+          </div>
+          <!-- Navigation Buttons -->
+          <div class="flex space-x-2">
+            <button
+              id="backToStep3"
+              class="flex-1 bg-gray-600 text-white py-2 rounded-lg hover:bg-gray-700 focus:outline-none"
+            >
+              Back
+            </button>
+            <button
+              id="submitButton"
+              class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 focus:outline-none disabled:opacity-50"
+              disabled
+            >
+              Submit
+            </button>
+          </div>
         </div>
 
         <!-- Hidden Inputs for Links -->
@@ -245,6 +355,7 @@
       </div>
     </div>
 
+    <!-- Modals and Overlays -->
     <!-- Modal for general messages -->
     <div
       id="modal"
@@ -271,7 +382,7 @@
       aria-modal="true"
     >
       <div class="bg-white rounded-lg p-6 text-center max-w-sm mx-auto">
-        <h2 class="text-xl font-semibold mb-4">Detail Rencana</h2>
+        <h2 class="text-xl font-semibold mb-4">Rencana Details</h2>
         <div id="rencanaDetails" class="text-gray-800 mb-4">
           <!-- Details will be populated here -->
         </div>
@@ -292,8 +403,32 @@
       </div>
     </div>
 
+    <!-- Processing Modal -->
+    <div
+      id="processingModal"
+      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div class="bg-white rounded-lg p-6 text-center">
+        <p class="text-gray-800 mb-4">Processing, please wait...</p>
+        <div class="spinner"></div>
+      </div>
+    </div>
+
     <script>
-      // JavaScript Code
+      // JavaScript Code for Multi-Step Form and Improved User Flow
+
+      // Step Navigation
+      let currentStep = 1;
+      const totalSteps = 4;
+
+      function showStep(step) {
+        document.querySelectorAll(".step").forEach((stepDiv) => {
+          stepDiv.classList.remove("active");
+        });
+        document.getElementById(`step${step}`).classList.add("active");
+      }
 
       // Updated variable references
       const video = document.getElementById("video");
@@ -322,6 +457,21 @@
       const rencanaDetailsDiv = document.getElementById("rencanaDetails");
       const rencanaNoButton = document.getElementById("rencanaNoButton");
       const rencanaYesButton = document.getElementById("rencanaYesButton");
+      const processingModal = document.getElementById("processingModal");
+      const reviewInfo = document.getElementById("reviewInfo");
+
+      const nextToStep2 = document.getElementById("nextToStep2");
+      const nextToStep3 = document.getElementById("nextToStep3");
+      const nextToStep4 = document.getElementById("nextToStep4");
+      const backToStep1 = document.getElementById("backToStep1");
+      const backToStep2 = document.getElementById("backToStep2");
+      const backToStep3 = document.getElementById("backToStep3");
+
+      const amountError = document.getElementById("amountError");
+      const accountError = document.getElementById("accountError");
+      const rencanaError = document.getElementById("rencanaError");
+      const uraianError = document.getElementById("uraianError");
+      const judulError = document.getElementById("judulError");
 
       let stream;
       let photoTaken = false;
@@ -336,6 +486,15 @@
       modalClose.addEventListener("click", () => {
         modal.classList.add("hidden");
       });
+
+      // Function to show processing modal
+      function showProcessingModal() {
+        processingModal.classList.remove("hidden");
+      }
+
+      function hideProcessingModal() {
+        processingModal.classList.add("hidden");
+      }
 
       // Function to start the camera
       function startCamera() {
@@ -394,8 +553,9 @@
           preview.src = canvas.toDataURL("image/png");
           preview.classList.remove("hidden");
           video.classList.add("hidden");
-          scanButtonText.innerText = "Pindai Lagi";
+          scanButtonText.innerText = "Scan Again";
           photoTaken = true;
+          nextToStep2.disabled = true; // Disable next button until processing is done
         } else {
           resetCamera();
         }
@@ -404,8 +564,9 @@
       function resetCamera() {
         preview.classList.add("hidden");
         video.classList.remove("hidden");
-        scanButtonText.innerText = "Pindai Nota";
+        scanButtonText.innerText = "Scan Receipt";
         photoTaken = false;
+        nextToStep2.disabled = true;
       }
 
       // Handle file upload for receipt
@@ -426,7 +587,8 @@
             video.classList.add("hidden");
             placeholder.classList.add("hidden");
             photoTaken = true;
-            scanButtonText.innerText = "Pindai Lagi";
+            scanButtonText.innerText = "Scan Again";
+            nextToStep2.disabled = true; // Disable next button until processing is done
           };
           reader.readAsDataURL(file);
 
@@ -453,9 +615,8 @@
 
       // Process receipt image (upload to backend and extract total_value)
       async function processReceiptImage(file) {
-        // Show loading spinner
-        loadingSpinner.classList.remove("hidden");
-        submitButton.disabled = true; // Disable the submit button until upload is complete
+        // Show processing modal
+        showProcessingModal();
 
         const formData = new FormData();
         formData.append("file", file); // Attach the image file
@@ -478,27 +639,27 @@
               .trim(); // Remove any leading/trailing spaces
             amountInput.value = cleanedAmount;
             showModal("Total value extracted successfully!");
-            submitButton.disabled = false; // Enable the submit button
+            nextToStep2.disabled = false; // Enable the next button
           } else {
             showModal(`Error: ${data.error || "Unknown error occurred."}`);
-            submitButton.disabled = true; // Keep the submit button disabled
+            nextToStep2.disabled = true; // Keep the next button disabled
           }
         } catch (error) {
           console.error("Error processing receipt:", error);
           showModal(
             "There was an error processing the receipt. Please try again."
           );
-          submitButton.disabled = true; // Keep the submit button disabled
+          nextToStep2.disabled = true; // Keep the next button disabled
         } finally {
-          // Hide loading spinner
-          loadingSpinner.classList.add("hidden");
+          // Hide processing modal
+          hideProcessingModal();
         }
       }
 
       // Fetch 'Id Rencana' and 'Account SKKO' from backend
       async function fetchData() {
-        // Show loading spinner
-        loadingSpinner.classList.remove("hidden");
+        // Show processing modal
+        showProcessingModal();
         try {
           const [idRencanaResponse, accountSkkosResponse] = await Promise.all([
             fetch("/fetch_id_rencana"),
@@ -529,8 +690,8 @@
           console.error("Error fetching data:", error);
           showModal("Error fetching dropdown data. Please try again.");
         } finally {
-          // Hide loading spinner
-          loadingSpinner.classList.add("hidden");
+          // Hide processing modal
+          hideProcessingModal();
         }
       }
 
@@ -540,8 +701,8 @@
       async function handleRencanaIdChange() {
         const selectedIdRencana = rencanaIdSelect.value;
 
-        // Show loading spinner
-        loadingSpinner.classList.remove("hidden");
+        // Show processing modal
+        showProcessingModal();
 
         // Fetch the details for the selected ID Rencana
         try {
@@ -566,17 +727,17 @@
 
           // Sanitize data before inserting into the DOM
           const sanitizedDetails = `
-            <p><strong>Start Date A/R:</strong> ${sanitizeHTML(
-              data.start_date_ar
-            )}</p>
-            <p><strong>End Date A/R:</strong> ${sanitizeHTML(
-              data.end_date_ar
-            )}</p>
-            <p><strong>Requestor:</strong> ${sanitizeHTML(data.requestor)}</p>
-            <p><strong>Unit:</strong> ${sanitizeHTML(data.unit)}</p>
-            <p><strong>Nominal:</strong> ${sanitizeHTML(formattedNominal)}</p>
-            <p><strong>ID Rencana:</strong> ${sanitizeHTML(data.id_rencana)}</p>
-          `;
+          <p><strong>Start Date A/R:</strong> ${sanitizeHTML(
+            data.start_date_ar
+          )}</p>
+          <p><strong>End Date A/R:</strong> ${sanitizeHTML(
+            data.end_date_ar
+          )}</p>
+          <p><strong>Requestor:</strong> ${sanitizeHTML(data.requestor)}</p>
+          <p><strong>Unit:</strong> ${sanitizeHTML(data.unit)}</p>
+          <p><strong>Nominal:</strong> ${sanitizeHTML(formattedNominal)}</p>
+          <p><strong>ID Rencana:</strong> ${sanitizeHTML(data.id_rencana)}</p>
+        `;
 
           // Display the details in the modal
           rencanaDetailsDiv.innerHTML = sanitizedDetails;
@@ -587,8 +748,8 @@
           console.error("Error fetching Rencana details:", error);
           showModal("Error fetching Rencana details. Please try again.");
         } finally {
-          // Hide loading spinner
-          loadingSpinner.classList.add("hidden");
+          // Hide processing modal
+          hideProcessingModal();
         }
       }
 
@@ -606,6 +767,100 @@
         rencanaModal.classList.add("hidden");
       });
 
+      // Step Navigation Handlers
+      nextToStep2.addEventListener("click", () => {
+        currentStep++;
+        showStep(currentStep);
+      });
+
+      backToStep1.addEventListener("click", () => {
+        currentStep--;
+        showStep(currentStep);
+      });
+
+      nextToStep3.addEventListener("click", () => {
+        // Validate amount input
+        if (
+          !amountInput.value ||
+          isNaN(amountInput.value) ||
+          amountInput.value <= 0
+        ) {
+          amountError.classList.remove("hidden");
+          return;
+        } else {
+          amountError.classList.add("hidden");
+        }
+        currentStep++;
+        showStep(currentStep);
+      });
+
+      backToStep2.addEventListener("click", () => {
+        currentStep--;
+        showStep(currentStep);
+      });
+
+      nextToStep4.addEventListener("click", () => {
+        // Validate required fields
+        let hasError = false;
+
+        if (!accountIdSelect.value) {
+          accountError.classList.remove("hidden");
+          hasError = true;
+        } else {
+          accountError.classList.add("hidden");
+        }
+
+        if (!rencanaIdSelect.value) {
+          rencanaError.classList.remove("hidden");
+          hasError = true;
+        } else {
+          rencanaError.classList.add("hidden");
+        }
+
+        if (!uraianInput.value.trim()) {
+          uraianError.classList.remove("hidden");
+          hasError = true;
+        } else {
+          uraianError.classList.add("hidden");
+        }
+
+        if (!judulLaporanInput.value.trim()) {
+          judulError.classList.remove("hidden");
+          hasError = true;
+        } else {
+          judulError.classList.add("hidden");
+        }
+
+        if (hasError) {
+          return;
+        }
+
+        // Populate review information
+        reviewInfo.innerHTML = `
+        <p><strong>Amount:</strong> ${sanitizeHTML(amountInput.value)}</p>
+        <p><strong>Currency:</strong> ${sanitizeHTML(currencySelect.value)}</p>
+        <p><strong>Account SKKO:</strong> ${sanitizeHTML(
+          accountIdSelect.value
+        )}</p>
+        <p><strong>ID Rencana:</strong> ${sanitizeHTML(
+          rencanaIdSelect.value
+        )}</p>
+        <p><strong>Uraian:</strong> ${sanitizeHTML(uraianInput.value)}</p>
+        <p><strong>Judul Laporan:</strong> ${sanitizeHTML(
+          judulLaporanInput.value
+        )}</p>
+      `;
+
+        currentStep++;
+        showStep(currentStep);
+        submitButton.disabled = false; // Enable submit button
+      });
+
+      backToStep3.addEventListener("click", () => {
+        currentStep--;
+        showStep(currentStep);
+      });
+
       // Submit form data to the backend
       submitButton.addEventListener("click", async () => {
         const selectedIdRencana = rencanaIdSelect.value;
@@ -617,21 +872,8 @@
         const evidenceFiles = evidenceFilesInput.files;
         const receiptLink = receiptLinkInput.value;
 
-        // Check for empty fields before submission
-        if (
-          !selectedIdRencana ||
-          !selectedAccountId ||
-          !currency ||
-          !totalAmount ||
-          !uraian ||
-          !judulLaporan
-        ) {
-          showModal("All fields are required!");
-          return;
-        }
-
-        // Show loading spinner
-        loadingSpinner.classList.remove("hidden");
+        // Show processing modal
+        showProcessingModal();
         submitButton.disabled = true; // Disable the submit button to prevent multiple submissions
 
         // Prepare data to send to the backend
@@ -669,36 +911,50 @@
           console.error("Error during submission:", error);
           showModal("There was an error during submission. Please try again.");
         } finally {
-          // Hide loading spinner and re-enable submit button
-          loadingSpinner.classList.add("hidden");
+          // Hide processing modal and re-enable submit button
+          hideProcessingModal();
           submitButton.disabled = false;
         }
       });
 
       // Reset form function
       function resetForm() {
-        rencanaIdSelect.value = "";
-        accountIdSelect.value = "";
-        currencySelect.value = "IDR"; // Reset currency to default
-        currencySymbol.textContent = "Rp"; // Reset symbol to default
-        amountInput.value = "";
-        uraianInput.value = "";
-        judulLaporanInput.value = "";
-        receiptLinkInput.value = "";
-        evidenceLinksInput.value = "";
-        evidenceFilesInput.value = "";
-        uploadInput.value = "";
-        submitButton.disabled = true;
+        if (
+          confirm(
+            "Are you sure you want to reset the form? All entered data will be lost."
+          )
+        ) {
+          currentStep = 1;
+          showStep(currentStep);
+          rencanaIdSelect.value = "";
+          accountIdSelect.value = "";
+          currencySelect.value = "IDR"; // Reset currency to default
+          currencySymbol.textContent = "Rp"; // Reset symbol to default
+          amountInput.value = "";
+          uraianInput.value = "";
+          judulLaporanInput.value = "";
+          receiptLinkInput.value = "";
+          evidenceLinksInput.value = "";
+          evidenceFilesInput.value = "";
+          uploadInput.value = "";
+          submitButton.disabled = true;
+          nextToStep2.disabled = true;
+          amountError.classList.add("hidden");
+          accountError.classList.add("hidden");
+          rencanaError.classList.add("hidden");
+          uraianError.classList.add("hidden");
+          judulError.classList.add("hidden");
 
-        if (photoTaken) {
-          resetCamera();
+          if (photoTaken) {
+            resetCamera();
+          }
+
+          // Restart the camera
+          startCamera();
         }
-
-        // Restart the camera
-        startCamera();
       }
 
-      resetButton.addEventListener("click", resetForm);
+      // Since the reset button is removed in multi-step, we can reset on form completion or provide a reset link if needed.
     </script>
   </body>
 </html>
