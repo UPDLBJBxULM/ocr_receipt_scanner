@@ -725,19 +725,37 @@
             const data = await response.json();
 
             if (response.ok && data.extracted_text) {
-              const cleanedAmount = data.extracted_text
-                .replace(/[Rp.]/g, "") // Remove "Rp" and dots
-                .replace(/[Jumlah]/gi, "")
-                .replace(/[Total]/gi, "")
-                .replace(/[-]/g, "")
-                .replace(/,/g, "") // Remove commas, if any
-                .trim(); // Remove any leading/trailing spaces
-              amountInput.value = cleanedAmount;
-              showModal("Total value extracted successfully!");
-              nextToStep2.disabled = false; // Enable the next button
-              document.getElementById("formModal").classList.remove("hidden");
-              // Move focus to the form modal for accessibility
-              document.getElementById("evidenceFilesInput").focus();
+              const extractedText = data.extracted_text;
+              console.log("Extracted Text:", extractedText); // For debugging
+
+              // Use regex to find the first sequence of digits, dots, or commas
+              const match = extractedText.match(/[\d.,]+/);
+              if (match) {
+                // Remove dots and commas to get a clean number
+                const cleanedAmount = match[0]
+                  .replace(/[.,]/g, "")
+                  .replace(/,/g, ".");
+                if (!isNaN(cleanedAmount) && cleanedAmount.length > 0) {
+                  amountInput.value = cleanedAmount;
+                  showModal("Total value extracted successfully!");
+                  nextToStep2.disabled = false; // Enable the next button
+                  document
+                    .getElementById("formModal")
+                    .classList.remove("hidden");
+                  // Move focus to the form modal for accessibility
+                  document.getElementById("evidenceFilesInput").focus();
+                } else {
+                  showModal(
+                    "Failed to extract a valid amount from the receipt. Please enter manually."
+                  );
+                  nextToStep2.disabled = true;
+                }
+              } else {
+                showModal(
+                  "Failed to extract amount from the receipt. Please enter manually."
+                );
+                nextToStep2.disabled = true;
+              }
             } else {
               showModal(`Error: ${data.error || "Unknown error occurred."}`);
               nextToStep2.disabled = true; // Keep the next button disabled
