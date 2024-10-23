@@ -733,7 +733,7 @@
               if (match) {
                 // Remove dots and commas to get a clean number
                 const cleanedAmount = match[0]
-                  .replace(/[.,]/g, "")
+                  .replace(/./g, "")
                   .replace(/,/g, ".");
                 if (!isNaN(cleanedAmount) && cleanedAmount.length > 0) {
                   amountInput.value = cleanedAmount;
