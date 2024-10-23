@@ -193,6 +193,7 @@
                 <input
                   id="amountInput"
                   type="number"
+                  step="0.01"
                   class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   aria-label="Amount"
                   required
@@ -725,16 +726,77 @@
             const data = await response.json();
 
             if (response.ok && data.extracted_text) {
-              const extractedText = data.extracted_text;
+              let extractedText = data.extracted_text;
               console.log("Extracted Text:", extractedText); // For debugging
 
-              // Use regex to find the first sequence of digits, dots, or commas
-              const match = extractedText.match(/[\d.,]+/);
+              // Step 1: Use regex to extract the first valid number-like pattern
+              const regex = /\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?/;
+              const match = extractedText.match(regex);
+
               if (match) {
-                // Remove dots and commas to get a clean number
-                const cleanedAmount = match[0]
-                  .replace(/./g, "")
-                  .replace(/,/g, ".");
+                let amountStr = match[0];
+                console.log("Matched Amount String:", amountStr); // For debugging
+
+                // Step 2: Remove any non-digit, non-dot, non-comma characters from the matched string
+                amountStr = amountStr.replace(/[^\d.,]/g, "").trim();
+
+                let cleanedAmount = "";
+
+                if (amountStr.includes(",") && amountStr.includes(".")) {
+                  // Both comma and dot are present
+                  // Assume the last separator is the decimal separator
+                  const lastComma = amountStr.lastIndexOf(",");
+                  const lastDot = amountStr.lastIndexOf(".");
+                  if (lastDot > lastComma) {
+                    // Dot is the decimal separator
+                    // Remove all commas (thousand separators)
+                    const integerPart = amountStr
+                      .slice(0, lastDot)
+                      .replace(/,/g, "");
+                    const decimalPart = amountStr.slice(lastDot + 1);
+                    cleanedAmount = `${integerPart}.${decimalPart}`;
+                  } else {
+                    // Comma is the decimal separator
+                    // Remove all dots (thousand separators)
+                    const integerPart = amountStr
+                      .slice(0, lastComma)
+                      .replace(/\./g, "");
+                    const decimalPart = amountStr.slice(lastComma + 1);
+                    cleanedAmount = `${integerPart}.${decimalPart}`;
+                  }
+                } else if (amountStr.includes(",")) {
+                  // Only comma is present
+                  const commaIndex = amountStr.lastIndexOf(",");
+                  if (amountStr.length - commaIndex - 1 === 2) {
+                    // Two digits after comma, treat as decimal separator
+                    // Replace comma with dot
+                    const integerPart = amountStr
+                      .slice(0, commaIndex)
+                      .replace(/,/g, "");
+                    const decimalPart = amountStr.slice(commaIndex + 1);
+                    cleanedAmount = `${integerPart}.${decimalPart}`;
+                  } else {
+                    // Treat all commas as thousand separators
+                    cleanedAmount = amountStr.replace(/,/g, "");
+                  }
+                } else if (amountStr.includes(".")) {
+                  // Only dot is present
+                  const dotIndex = amountStr.lastIndexOf(".");
+                  if (amountStr.length - dotIndex - 1 === 2) {
+                    // Two digits after dot, treat as decimal separator
+                    cleanedAmount = amountStr;
+                  } else {
+                    // Treat all dots as thousand separators
+                    cleanedAmount = amountStr.replace(/\./g, "");
+                  }
+                } else {
+                  // No separators, just digits
+                  cleanedAmount = amountStr;
+                }
+
+                console.log("Cleaned Amount:", cleanedAmount); // For debugging
+
+                // Validate the cleaned amount
                 if (!isNaN(cleanedAmount) && cleanedAmount.length > 0) {
                   amountInput.value = cleanedAmount;
                   showModal("Total value extracted successfully!");
@@ -752,7 +814,7 @@
                 }
               } else {
                 showModal(
-                  "Failed to extract amount from the receipt. Please enter manually."
+                  "Failed to find a valid amount in the receipt. Please enter manually."
                 );
                 nextToStep2.disabled = true;
               }
