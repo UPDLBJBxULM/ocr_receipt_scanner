@@ -6,10 +6,12 @@ import logging
 import requests
 import numpy as np
 import imghdr
+import pytz
 from ultralytics import YOLO
 from dotenv import load_dotenv
 from google.cloud import vision
 from datetime import datetime, timedelta
+
 from werkzeug.utils import secure_filename
 from flask import (
     Flask,
@@ -50,7 +52,7 @@ GOOGLE_SHEET_ID = os.getenv("GOOGLE_SHEET_ID")
 
 # Set up Flask app
 app = Flask(__name__)
-UPLOAD_FOLDER = "./uploads"
+UPLOAD_FOLDER = "./tmp/uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024  # Limit file uploads to 100MB
 
@@ -217,7 +219,11 @@ def append_to_sheet(
 
     # Open the Google Sheet and access the REKAPREALISASI worksheet
     sheet = client.open_by_key(GOOGLE_SHEET_ID).worksheet("REKAPREALISASI")
-    current_time = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+    # Set timezone to GMT+8
+    gmt8 = pytz.timezone('Asia/Singapore')  # or 'Asia/Shanghai' for China GMT+8
+
+    # Get the current time in GMT+8
+    current_time = datetime.now(gmt8).strftime("%d.%m.%Y %H:%M:%S")
 
     data_to_append = [
         current_time,  # Column A: Tanggal

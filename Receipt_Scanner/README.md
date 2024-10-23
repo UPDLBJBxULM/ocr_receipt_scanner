@@ -120,8 +120,8 @@ receipt-scanner/
 │   └── index.html
 ├── requirements.txt
 ├── .env
-├── uploads/
-│   └── (folder untuk menyimpan file yang diunggah sementara)
+├── tmp/
+│   └── uploads/
 └── README.md
 ```
 
