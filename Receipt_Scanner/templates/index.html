@@ -1,1119 +1,970 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Receipt Scanner</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com" defer></script>
-    <style>
-      /* Custom styles */
 
-      /* Adjusted body background color */
-      body {
-        background-color: #f3f4f6;
-        /* Light gray background */
+<head>
+  <meta charset="UTF-8" />
+  <title>Receipt Scanner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com" defer></script>
+  <style>
+    /* Custom styles */
+
+    /* Adjusted body background color */
+    body {
+      background-color: #f3f4f6;
+      /* Light gray background */
+    }
+
+    /* Loading Spinner Styles */
+    .spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-top: 4px solid #4f46e5;
+      /* Indigo color */
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      animation: spin 1s linear infinite;
+      margin: auto;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
       }
+    }
 
-      /* Loading Spinner Styles */
-      .spinner {
-        border: 4px solid rgba(0, 0, 0, 0.1);
-        border-top: 4px solid #4f46e5;
-        /* Indigo color */
-        border-radius: 50%;
-        width: 36px;
-        height: 36px;
-        animation: spin 1s linear infinite;
-        margin: auto;
-      }
+    /* Hide scrollbar */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
 
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
 
-      /* Hide scrollbar */
-      .no-scrollbar::-webkit-scrollbar {
-        display: none;
-      }
+    /* Step Navigation */
+    .step {
+      display: none;
+    }
 
-      .no-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
+    .step.active {
+      display: block;
+    }
 
-      /* Step Navigation */
-      .step {
-        display: none;
-      }
+    /* Adjusted container to fit viewport and added padding */
+    .container {
+      max-height: calc(100vh - 2rem);
+      /* Adjust for padding */
+      margin: 1rem;
+      /* Added margin for top and bottom */
+    }
+  </style>
+</head>
 
-      .step.active {
-        display: block;
-      }
+<body class="bg-gray-100">
+  <!-- Container -->
+  <div class="container bg-white shadow-md rounded-lg max-w-md w-full mx-auto flex flex-col h-full">
+    <!-- Header -->
+    <header class="bg-[#10ace4] text-white text-center py-4 rounded-t-lg">
+      <h1 class="text-xl font-semibold">Receipt Scanner</h1>
+    </header>
 
-      /* Adjusted container to fit viewport and added padding */
-      .container {
-        max-height: calc(100vh - 2rem);
-        /* Adjust for padding */
-        margin: 1rem;
-        /* Added margin for top and bottom */
-      }
-    </style>
-  </head>
-
-  <body class="bg-gray-100">
-    <!-- Container -->
-    <div
-      class="container bg-white shadow-md rounded-lg max-w-md w-full mx-auto flex flex-col"
-    >
-      <!-- Header -->
-      <header class="bg-[#10ace4] text-white text-center py-4 rounded-t-lg">
-        <h1 class="text-xl font-semibold">Receipt Scanner</h1>
-      </header>
-
-      <!-- Main Content -->
-      <main class="p-6 overflow-y-auto flex-grow">
-        <!-- Multi-Step Form -->
-        <!-- Step 1: Upload or Scan Receipt and Confirm Amount -->
-        <section id="step1" class="step active" aria-labelledby="step1Title">
-          <h2 id="step1Title" class="sr-only">
-            Step 1: Upload or Scan Receipt
-          </h2>
-          <!-- Image/Video Container -->
-          <div class="relative mb-4">
-            <div
-              class="rounded-lg overflow-hidden h-64 flex items-center justify-center"
-            >
-              <img
-                id="preview"
-                alt="Receipt Preview"
-                class="hidden w-full h-full object-contain"
-              />
-              <video
-                id="video"
-                class="hidden w-full h-full object-contain rounded-lg"
-                autoplay
-                playsinline
-                aria-label="Camera Preview"
-              ></video>
-              <!-- Placeholder Icon -->
-              <div
-                id="placeholder"
-                class="text-gray-400 flex flex-col items-center"
-              >
-                <svg
-                  class="w-16 h-16 mb-2"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M12 11.25v-4.5m0 0L9.75 8.25M12 6.75l2.25 1.5m-6 4.5h9a1.5 1.5 0 010 3h-9a1.5 1.5 0 010-3z"
-                  ></path>
-                </svg>
-                <p class="text-sm">No image selected</p>
-              </div>
-            </div>
-            <!-- Loading Spinner -->
-            <div
-              id="loadingSpinner"
-              class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 hidden"
-              aria-live="polite"
-              aria-busy="true"
-            >
-              <div class="spinner" role="status" aria-label="Loading"></div>
+    <!-- Main Content -->
+    <main class="p-6 overflow-y-auto flex-grow">
+      <!-- Multi-Step Form -->
+      <!-- Step 1: Upload or Scan Receipt and Confirm Amount -->
+      <section id="step1" class="step active" aria-labelledby="step1Title">
+        <h2 id="step1Title" class="sr-only">
+          Step 1: Upload or Scan Receipt
+        </h2>
+        <!-- Image/Video Container -->
+        <div class="relative mb-4">
+          <div class="rounded-lg overflow-hidden h-64 flex items-center justify-center">
+            <img id="preview" alt="Receipt Preview" class="hidden w-full h-full object-contain" />
+            <video id="video" class="hidden w-full h-full object-contain rounded-lg" autoplay playsinline
+              aria-label="Camera Preview"></video>
+            <!-- Placeholder Icon -->
+            <div id="placeholder" class="text-gray-400 flex flex-col items-center">
+              <svg class="w-16 h-16 mb-2" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"
+                aria-hidden="true">
+                <path d="M12 11.25v-4.5m0 0L9.75 8.25M12 6.75l2.25 1.5m-6 4.5h9a1.5 1.5 0 010 3h-9a1.5 1.5 0 010-3z">
+                </path>
+              </svg>
+              <p class="text-sm">No image selected</p>
             </div>
           </div>
-          <!-- Buttons -->
-          <div class="flex space-x-2 mb-4">
-            <button
-              id="scanButton"
-              class="flex-1 bg-[#10ace4] text-white py-2 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              aria-label="Scan Receipt"
-            >
-              <span id="scanButtonText">Scan Receipt</span>
-            </button>
-            <input
-              id="uploadInput"
-              type="file"
-              accept="image/*"
-              class="hidden"
-              aria-label="Upload Receipt"
-            />
-            <label
-              for="uploadInput"
-              class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-300"
-              tabindex="0"
-              role="button"
-              aria-label="Upload Receipt"
-            >
-              Upload Receipt
-            </label>
+          <!-- Loading Spinner -->
+          <div id="loadingSpinner"
+            class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 hidden" aria-live="polite"
+            aria-busy="true">
+            <div class="spinner" role="status" aria-label="Loading"></div>
           </div>
+        </div>
+        <!-- Buttons -->
+        <div class="flex space-x-2 mb-4">
+          <button id="scanButton"
+            class="flex-1 bg-[#10ace4] text-white py-2 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            aria-label="Scan Receipt">
+            <span id="scanButtonText">Scan Receipt</span>
+          </button>
+          <input id="uploadInput" type="file" accept="image/*" class="hidden" aria-label="Upload Receipt" />
+          <label for="uploadInput"
+            class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-300"
+            tabindex="0" role="button" aria-label="Upload Receipt">
+            Upload Receipt
+          </label>
+        </div>
 
-          <!-- Currency and Amount Input -->
-          <div class="flex justify-between space-x-4 mb-4">
-            <!-- Currency Select on the left -->
-            <div class="w-1/4">
-              <label
-                for="currencySelect"
-                class="block text-gray-700 mb-1 text-left"
-                >Currency
-                <span class="text-red-500" aria-hidden="true">*</span></label
-              >
-              <select
-                id="currencySelect"
-                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                aria-required="true"
-                aria-label="Currency"
-              >
-                <option value="IDR" selected>IDR</option>
-                <option value="USD">USD</option>
-              </select>
-            </div>
 
-            <!-- Amount Input on the right -->
-            <div class="w-3/4 text-right">
-              <label
-                for="amountInput"
-                class="block text-gray-700 mb-1 text-left"
-                >Amount
-                <span class="text-red-500" aria-hidden="true">*</span></label
-              >
-              <div class="flex">
-                <span
-                  class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm"
-                  id="currencySymbolContainer"
-                >
-                  <span id="currencySymbol">Rp</span>
-                </span>
-                <input
-                  id="amountInput"
-                  type="number"
-                  step="0.01"
-                  class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  aria-label="Amount"
-                  required
-                />
-              </div>
-              <div
-                id="amountError"
-                class="text-red-500 text-sm hidden"
-                role="alert"
-              >
-                Please enter a valid amount.
-              </div>
-            </div>
-          </div>
+        <!-- Navigation Buttons -->
+        <div class="flex space-x-2">
+          <button id="nextToStep2"
+            class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50"
+            disabled aria-label="Proceed to Step 2">
+            Isi Detail Rencana
+          </button>
+        </div>
+      </section>
 
-          <!-- Navigation Buttons -->
-          <div class="flex space-x-2">
-            <button
-              id="nextToStep2"
-              class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50"
-              disabled
-              aria-label="Proceed to Step 2"
-            >
-              Isi Detail Rencana
-            </button>
-          </div>
-        </section>
+      <!-- Hidden Inputs for Links -->
+      <input type="hidden" id="receiptLinkInput" name="receipt_link" />
+      <input type="hidden" id="evidenceLinksInput" name="evidence_links" />
+    </main>
+  </div>
 
-        <!-- Hidden Inputs for Links -->
-        <input type="hidden" id="receiptLinkInput" name="receipt_link" />
-        <input type="hidden" id="evidenceLinksInput" name="evidence_links" />
-      </main>
+  <!-- Modals and Overlays -->
+  <!-- Modal for general messages -->
+  <div id="modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden" role="dialog"
+    aria-modal="true" aria-labelledby="modalMessage">
+    <div class="bg-white rounded-lg p-6 text-center max-w-sm mx-auto">
+      <p id="modalMessage" class="text-gray-800 mb-4"></p>
+      <button id="modalClose"
+        class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        aria-label="Close Modal">
+        Close
+      </button>
     </div>
+  </div>
 
-    <!-- Modals and Overlays -->
-    <!-- Modal for general messages -->
-    <div
-      id="modal"
-      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modalMessage"
-    >
-      <div class="bg-white rounded-lg p-6 text-center max-w-sm mx-auto">
-        <p id="modalMessage" class="text-gray-800 mb-4"></p>
-        <button
-          id="modalClose"
-          class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          aria-label="Close Modal"
-        >
-          Close
+  <!-- Form Modal -->
+  <div id="formModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden" role="dialog"
+    aria-modal="true" aria-labelledby="formModalTitle">
+    <div class="bg-white rounded-lg p-6 max-w-sm mx-auto">
+      <h2 id="formModalTitle" class="sr-only">Form Modal</h2>
+      <!-- Currency and Amount Input -->
+      <div class="flex justify-between space-x-4 mb-4">
+        <!-- Currency Select on the left -->
+        <div class="w-1/4">
+          <label for="currencySelect" class="block text-gray-700 mb-1 text-left">Currency
+            <span class="text-red-500" aria-hidden="true">*</span></label>
+          <select id="currencySelect"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            aria-required="true" aria-label="Currency">
+            <option value="IDR" selected>IDR</option>
+            <option value="USD">USD</option>
+          </select>
+        </div>
+
+        <!-- Amount Input on the right -->
+        <div class="w-3/4 text-right">
+          <label for="amountInput" class="block text-gray-700 mb-1 text-left">Amount
+            <span class="text-red-500" aria-hidden="true">*</span></label>
+          <div class="flex">
+            <span
+              class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm"
+              id="currencySymbolContainer">
+              <span id="currencySymbol">Rp</span>
+            </span>
+            <input id="amountInput" type="number" step="0.01"
+              class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              aria-label="Amount" required />
+          </div>
+          <div id="amountError" class="text-red-500 text-sm hidden" role="alert">
+            Please enter a valid amount.
+          </div>
+        </div>
+      </div>
+      <!-- Upload Evidence Files -->
+      <div class="mb-4">
+        <label for="evidenceFilesInput" class="block text-gray-700 mb-1">Upload Evidence Files (Optional)</label>
+        <input id="evidenceFilesInput" type="file" accept="image/*" multiple
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          aria-label="Upload Evidence Files" />
+      </div>
+      <!-- Account SKKO Selection -->
+      <div class="mb-4">
+        <label for="accountIdSelect" class="block text-gray-700 mb-1">Account SKKO <span class="text-red-500"
+            aria-hidden="true">*</span>
+          <span class="tooltip" data-tooltip="Select the appropriate Account SKKO from the list.">ⓘ</span>
+        </label>
+        <select id="accountIdSelect" name="accountSKKO"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          aria-required="true" aria-label="Account SKKO">
+          <option value="" selected disabled>Select Account SKKO</option>
+        </select>
+        <div id="accountError" class="text-red-500 text-sm hidden" role="alert">
+          Please select an Account SKKO.
+        </div>
+      </div>
+      <!-- ID Rencana Selection -->
+      <div class="mb-4">
+        <label for="rencanaIdSelect" class="block text-gray-700 mb-1">ID Rencana <span class="text-red-500"
+            aria-hidden="true">*</span>
+          <span class="tooltip" data-tooltip="Select the appropriate ID Rencana from the list.">ⓘ</span>
+        </label>
+        <select id="rencanaIdSelect"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          aria-required="true" aria-label="ID Rencana">
+          <option value="" selected disabled>Select ID Rencana</option>
+        </select>
+        <div id="rencanaError" class="text-red-500 text-sm hidden" role="alert">
+          Please select an ID Rencana.
+        </div>
+      </div>
+      <!-- Uraian Input -->
+      <div class="mb-4">
+        <label for="uraianInput" class="block text-gray-700 mb-1">Uraian <span class="text-red-500"
+            aria-hidden="true">*</span>
+          <span class="tooltip" data-tooltip="Provide a description for the transaction.">ⓘ</span>
+        </label>
+        <input id="uraianInput" type="text"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          aria-label="Uraian" required />
+        <div id="uraianError" class="text-red-500 text-sm hidden" role="alert">
+          Please enter Uraian.
+        </div>
+      </div>
+      <!-- Judul Laporan Input -->
+      <div class="mb-4">
+        <label for="judulLaporanInput" class="block text-gray-700 mb-1">Judul Laporan
+          <span class="text-red-500" aria-hidden="true">*</span>
+          <span class="tooltip" data-tooltip="Provide the report title.">ⓘ</span>
+        </label>
+        <input id="judulLaporanInput" type="text"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          aria-label="Judul Laporan" required />
+        <div id="judulError" class="text-red-500 text-sm hidden" role="alert">
+          Please enter Judul Laporan.
+        </div>
+      </div>
+
+      <div class="flex justify-center space-x-4 mt-6">
+        <button id="closeModalButton"
+          class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+          aria-label="Cancel">
+          Cancel
+        </button>
+        <button id="nextToStep3"
+          class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+          aria-label="Proceed to Step 3">
+          Next
         </button>
       </div>
     </div>
+  </div>
 
-    <!-- Form Modal -->
-    <div
-      id="formModal"
-      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="formModalTitle"
-    >
-      <div class="bg-white rounded-lg p-6 max-w-sm mx-auto">
-        <h2 id="formModalTitle" class="sr-only">Form Modal</h2>
-        <!-- Upload Evidence Files -->
-        <div class="mb-4">
-          <label for="evidenceFilesInput" class="block text-gray-700 mb-1"
-            >Upload Evidence Files (Optional)</label
-          >
-          <input
-            id="evidenceFilesInput"
-            type="file"
-            accept="image/*"
-            multiple
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            aria-label="Upload Evidence Files"
-          />
-        </div>
-        <!-- Account SKKO Selection -->
-        <div class="mb-4">
-          <label for="accountIdSelect" class="block text-gray-700 mb-1"
-            >Account SKKO <span class="text-red-500" aria-hidden="true">*</span>
-            <span
-              class="tooltip"
-              data-tooltip="Select the appropriate Account SKKO from the list."
-              >ⓘ</span
-            >
-          </label>
-          <select
-            id="accountIdSelect"
-            name="accountSKKO"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            aria-required="true"
-            aria-label="Account SKKO"
-          >
-            <option value="" selected disabled>Select Account SKKO</option>
-          </select>
-          <div
-            id="accountError"
-            class="text-red-500 text-sm hidden"
-            role="alert"
-          >
-            Please select an Account SKKO.
-          </div>
-        </div>
-        <!-- ID Rencana Selection -->
-        <div class="mb-4">
-          <label for="rencanaIdSelect" class="block text-gray-700 mb-1"
-            >ID Rencana <span class="text-red-500" aria-hidden="true">*</span>
-            <span
-              class="tooltip"
-              data-tooltip="Select the appropriate ID Rencana from the list."
-              >ⓘ</span
-            >
-          </label>
-          <select
-            id="rencanaIdSelect"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            aria-required="true"
-            aria-label="ID Rencana"
-          >
-            <option value="" selected disabled>Select ID Rencana</option>
-          </select>
-          <div
-            id="rencanaError"
-            class="text-red-500 text-sm hidden"
-            role="alert"
-          >
-            Please select an ID Rencana.
-          </div>
-        </div>
-        <!-- Uraian Input -->
-        <div class="mb-4">
-          <label for="uraianInput" class="block text-gray-700 mb-1"
-            >Uraian <span class="text-red-500" aria-hidden="true">*</span>
-            <span
-              class="tooltip"
-              data-tooltip="Provide a description for the transaction."
-              >ⓘ</span
-            >
-          </label>
-          <input
-            id="uraianInput"
-            type="text"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            aria-label="Uraian"
-            required
-          />
-          <div
-            id="uraianError"
-            class="text-red-500 text-sm hidden"
-            role="alert"
-          >
-            Please enter Uraian.
-          </div>
-        </div>
-        <!-- Judul Laporan Input -->
-        <div class="mb-4">
-          <label for="judulLaporanInput" class="block text-gray-700 mb-1"
-            >Judul Laporan
-            <span class="text-red-500" aria-hidden="true">*</span>
-            <span class="tooltip" data-tooltip="Provide the report title."
-              >ⓘ</span
-            >
-          </label>
-          <input
-            id="judulLaporanInput"
-            type="text"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            aria-label="Judul Laporan"
-            required
-          />
-          <div id="judulError" class="text-red-500 text-sm hidden" role="alert">
-            Please enter Judul Laporan.
-          </div>
-        </div>
+  <!-- Modal summary-->
+  <div id="summaryModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden"
+    role="dialog" aria-modal="true" aria-labelledby="summaryModalTitle">
+    <div class="bg-white rounded-lg p-6 max-w-sm mx-auto">
+      <h2 id="summaryModalTitle" class="text-xl font-semibold mb-4">
+        Summary Modal
+      </h2>
+      <!-- Modal Form Fields -->
+      <p class="text-gray-700 mb-4">
+        Step 3: Review your information before submitting.
+      </p>
+      <!-- Display Review Information -->
+      <div id="reviewInfo" class="mb-4">
+        <!-- Review content will be injected here -->
+      </div>
 
-        <div class="flex justify-center space-x-4 mt-6">
-          <button
-            id="closeModalButton"
-            class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-            aria-label="Cancel"
-          >
-            Cancel
-          </button>
-          <button
-            id="nextToStep3"
-            class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-            aria-label="Proceed to Step 3"
-          >
-            Next
-          </button>
-        </div>
+      <div class="flex justify-center space-x-4 mt-6">
+        <button id="backToStep2"
+          class="flex-1 bg-gray-600 text-white py-2 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+          aria-label="Back to Step 2">
+          Back
+        </button>
+        <button id="submitButton"
+          class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+          disabled aria-label="Submit">
+          Submit
+        </button>
       </div>
     </div>
+  </div>
 
-    <!-- Modal summary-->
-    <div
-      id="summaryModal"
-      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="summaryModalTitle"
-    >
-      <div class="bg-white rounded-lg p-6 max-w-sm mx-auto">
-        <h2 id="summaryModalTitle" class="text-xl font-semibold mb-4">
-          Summary Modal
-        </h2>
-        <!-- Modal Form Fields -->
-        <p class="text-gray-700 mb-4">
-          Step 3: Review your information before submitting.
-        </p>
-        <!-- Display Review Information -->
-        <div id="reviewInfo" class="mb-4">
-          <!-- Review content will be injected here -->
-        </div>
-
-        <div class="flex justify-center space-x-4 mt-6">
-          <button
-            id="backToStep2"
-            class="flex-1 bg-gray-600 text-white py-2 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
-            aria-label="Back to Step 2"
-          >
-            Back
-          </button>
-          <button
-            id="submitButton"
-            class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-            disabled
-            aria-label="Submit"
-          >
-            Submit
-          </button>
-        </div>
+  <!-- Modal for Rencana Details -->
+  <div id="rencanaModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden"
+    role="dialog" aria-modal="true" aria-labelledby="rencanaModalTitle">
+    <div class="bg-white rounded-lg p-6 text-center max-w-sm mx-auto">
+      <h2 id="rencanaModalTitle" class="text-xl font-semibold mb-4">
+        Rencana Details
+      </h2>
+      <div id="rencanaDetails" class="text-gray-800 mb-4">
+        <!-- Details will be populated here -->
+      </div>
+      <div class="flex justify-center space-x-4">
+        <button id="rencanaNoButton"
+          class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+          aria-label="No">
+          NO
+        </button>
+        <button id="rencanaYesButton"
+          class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+          aria-label="Yes">
+          YES
+        </button>
       </div>
     </div>
+  </div>
 
-    <!-- Modal for Rencana Details -->
-    <div
-      id="rencanaModal"
-      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="rencanaModalTitle"
-    >
-      <div class="bg-white rounded-lg p-6 text-center max-w-sm mx-auto">
-        <h2 id="rencanaModalTitle" class="text-xl font-semibold mb-4">
-          Rencana Details
-        </h2>
-        <div id="rencanaDetails" class="text-gray-800 mb-4">
-          <!-- Details will be populated here -->
-        </div>
-        <div class="flex justify-center space-x-4">
-          <button
-            id="rencanaNoButton"
-            class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-            aria-label="No"
-          >
-            NO
-          </button>
-          <button
-            id="rencanaYesButton"
-            class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-            aria-label="Yes"
-          >
-            YES
-          </button>
-        </div>
-      </div>
+  <!-- Processing Modal -->
+  <div id="processingModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden"
+    role="dialog" aria-modal="true" aria-labelledby="processingModalTitle">
+    <div class="bg-white rounded-lg p-6 text-center">
+      <h2 id="processingModalTitle" class="sr-only">Processing</h2>
+      <p class="text-gray-800 mb-4">Processing, please wait...</p>
+      <div class="spinner" role="status" aria-label="Processing"></div>
     </div>
+  </div>
 
-    <!-- Processing Modal -->
-    <div
-      id="processingModal"
-      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="processingModalTitle"
-    >
-      <div class="bg-white rounded-lg p-6 text-center">
-        <h2 id="processingModalTitle" class="sr-only">Processing</h2>
-        <p class="text-gray-800 mb-4">Processing, please wait...</p>
-        <div class="spinner" role="status" aria-label="Processing"></div>
-      </div>
-    </div>
+  <script>
+    (function () {
+      "use strict";
 
-    <script>
-      (function () {
-        "use strict";
-
-        // Open modal
-        document
-          .getElementById("nextToStep2")
-          .addEventListener("click", function () {
-            document.getElementById("formModal").classList.remove("hidden");
-            // Move focus to the modal for accessibility
-            document.getElementById("evidenceFilesInput").focus();
-          });
-
-        // Close modal
-        document
-          .getElementById("closeModalButton")
-          .addEventListener("click", function () {
-            document.getElementById("formModal").classList.add("hidden");
-            // Return focus to the nextToStep2 button
-            document.getElementById("nextToStep2").focus();
-          });
-
-        // JavaScript Code for 3-Step Form and Adjusted User Flow
-
-        // Step Navigation
-        const totalSteps = 3;
-
-        // Updated variable references
-        const video = document.getElementById("video");
-        const uploadInput = document.getElementById("uploadInput");
-        const evidenceFilesInput =
-          document.getElementById("evidenceFilesInput");
-        const preview = document.getElementById("preview");
-        const placeholder = document.getElementById("placeholder");
-        const scanButton = document.getElementById("scanButton");
-        const scanButtonText = document.getElementById("scanButtonText");
-        const submitButton = document.getElementById("submitButton");
-        const rencanaIdSelect = document.getElementById("rencanaIdSelect");
-        const accountIdSelect = document.getElementById("accountIdSelect");
-        const currencySelect = document.getElementById("currencySelect");
-        const currencySymbol = document.getElementById("currencySymbol");
-        const amountInput = document.getElementById("amountInput");
-        const uraianInput = document.getElementById("uraianInput");
-        const judulLaporanInput = document.getElementById("judulLaporanInput");
-        const resetButton = document.getElementById("resetButton");
-        const receiptLinkInput = document.getElementById("receiptLinkInput");
-        const evidenceLinksInput =
-          document.getElementById("evidenceLinksInput");
-        const loadingSpinner = document.getElementById("loadingSpinner");
-        const modal = document.getElementById("modal");
-        const modalMessage = document.getElementById("modalMessage");
-        const modalClose = document.getElementById("modalClose");
-        const rencanaModal = document.getElementById("rencanaModal");
-        const rencanaDetailsDiv = document.getElementById("rencanaDetails");
-        const rencanaNoButton = document.getElementById("rencanaNoButton");
-        const rencanaYesButton = document.getElementById("rencanaYesButton");
-        const processingModal = document.getElementById("processingModal");
-        const reviewInfo = document.getElementById("reviewInfo");
-        const nextToStep2 = document.getElementById("nextToStep2");
-        const nextToStep3 = document.getElementById("nextToStep3");
-        const backToStep2 = document.getElementById("backToStep2");
-
-        const amountError = document.getElementById("amountError");
-        const accountError = document.getElementById("accountError");
-        const rencanaError = document.getElementById("rencanaError");
-        const uraianError = document.getElementById("uraianError");
-        const judulError = document.getElementById("judulError");
-
-        let stream;
-        let photoTaken = false;
-
-        // Function to show modal messages
-        function showModal(message) {
-          modalMessage.textContent = message;
-          modal.classList.remove("hidden");
+      // Open modal
+      document
+        .getElementById("nextToStep2")
+        .addEventListener("click", function () {
+          document.getElementById("formModal").classList.remove("hidden");
           // Move focus to the modal for accessibility
-          modalClose.focus();
-        }
-
-        // Close modal handler
-        modalClose.addEventListener("click", () => {
-          modal.classList.add("hidden");
-          // Return focus to the element that triggered the modal
-          document.activeElement.blur();
+          document.getElementById("evidenceFilesInput").focus();
         });
 
-        // Function to show processing modal
-        function showProcessingModal() {
-          processingModal.classList.remove("hidden");
-          // Prevent interaction with the background
-          processingModal.setAttribute("aria-hidden", "false");
-        }
-
-        function hideProcessingModal() {
-          processingModal.classList.add("hidden");
-          processingModal.setAttribute("aria-hidden", "true");
-        }
-
-        // Function to start the camera
-        function startCamera() {
-          navigator.mediaDevices
-            .getUserMedia({ video: { facingMode: "environment" } })
-            .then((s) => {
-              stream = s;
-              video.srcObject = stream;
-              video.classList.remove("hidden");
-              placeholder.classList.add("hidden");
-              scanButton.disabled = false;
-            })
-            .catch((error) => {
-              console.warn(
-                "Rear camera not available, switching to front camera."
-              );
-              navigator.mediaDevices
-                .getUserMedia({ video: { facingMode: "user" } })
-                .then((s) => {
-                  stream = s;
-                  video.srcObject = stream;
-                  video.classList.remove("hidden");
-                  placeholder.classList.add("hidden");
-                  scanButton.disabled = false;
-                })
-                .catch((err) => {
-                  console.error("Camera access denied or not supported: ", err);
-                  showModal("Camera access is denied or not supported.");
-                  placeholder.classList.remove("hidden");
-                  scanButton.disabled = true;
-                });
-            });
-        }
-
-        // Start camera on page load
-        window.addEventListener("DOMContentLoaded", () => {
-          startCamera();
-          fetchData();
+      // Close modal
+      document
+        .getElementById("closeModalButton")
+        .addEventListener("click", function () {
+          document.getElementById("formModal").classList.add("hidden");
+          // Return focus to the nextToStep2 button
+          document.getElementById("nextToStep2").focus();
         });
 
-        // Capture image or reset the camera
-        scanButton.addEventListener("click", () => captureImage());
+      // JavaScript Code for 3-Step Form and Adjusted User Flow
 
-        // Capture image from the camera
-        function captureImage() {
-          if (!photoTaken) {
-            const canvas = document.createElement("canvas");
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext("2d").drawImage(video, 0, 0);
-            canvas.toBlob(
-              (blob) => {
-                if (blob) {
-                  processReceiptImage(blob); // Process the captured image
-                } else {
-                  showModal("Failed to capture image. Please try again.");
-                }
-              },
-              "image/png",
-              0.8
-            ); // Adjust quality if needed
+      // Step Navigation
+      const totalSteps = 3;
 
-            preview.src = canvas.toDataURL("image/png");
+      // Updated variable references
+      const video = document.getElementById("video");
+      const uploadInput = document.getElementById("uploadInput");
+      const evidenceFilesInput =
+        document.getElementById("evidenceFilesInput");
+      const preview = document.getElementById("preview");
+      const placeholder = document.getElementById("placeholder");
+      const scanButton = document.getElementById("scanButton");
+      const scanButtonText = document.getElementById("scanButtonText");
+      const submitButton = document.getElementById("submitButton");
+      const rencanaIdSelect = document.getElementById("rencanaIdSelect");
+      const accountIdSelect = document.getElementById("accountIdSelect");
+      const currencySelect = document.getElementById("currencySelect");
+      const currencySymbol = document.getElementById("currencySymbol");
+      const amountInput = document.getElementById("amountInput");
+      const uraianInput = document.getElementById("uraianInput");
+      const judulLaporanInput = document.getElementById("judulLaporanInput");
+      const resetButton = document.getElementById("resetButton");
+      const receiptLinkInput = document.getElementById("receiptLinkInput");
+      const evidenceLinksInput =
+        document.getElementById("evidenceLinksInput");
+      const loadingSpinner = document.getElementById("loadingSpinner");
+      const modal = document.getElementById("modal");
+      const modalMessage = document.getElementById("modalMessage");
+      const modalClose = document.getElementById("modalClose");
+      const rencanaModal = document.getElementById("rencanaModal");
+      const rencanaDetailsDiv = document.getElementById("rencanaDetails");
+      const rencanaNoButton = document.getElementById("rencanaNoButton");
+      const rencanaYesButton = document.getElementById("rencanaYesButton");
+      const processingModal = document.getElementById("processingModal");
+      const reviewInfo = document.getElementById("reviewInfo");
+      const nextToStep2 = document.getElementById("nextToStep2");
+      const nextToStep3 = document.getElementById("nextToStep3");
+      const backToStep2 = document.getElementById("backToStep2");
+
+      const amountError = document.getElementById("amountError");
+      const accountError = document.getElementById("accountError");
+      const rencanaError = document.getElementById("rencanaError");
+      const uraianError = document.getElementById("uraianError");
+      const judulError = document.getElementById("judulError");
+
+      let stream;
+      let photoTaken = false;
+
+      // Function to show modal messages
+      function showModal(message) {
+        modalMessage.textContent = message;
+        modal.classList.remove("hidden");
+        // Move focus to the modal for accessibility
+        modalClose.focus();
+      }
+
+      // Close modal handler
+      modalClose.addEventListener("click", () => {
+        modal.classList.add("hidden");
+        // Return focus to the element that triggered the modal
+        document.activeElement.blur();
+      });
+
+      // Function to show processing modal
+      function showProcessingModal() {
+        processingModal.classList.remove("hidden");
+        // Prevent interaction with the background
+        processingModal.setAttribute("aria-hidden", "false");
+      }
+
+      function hideProcessingModal() {
+        processingModal.classList.add("hidden");
+        processingModal.setAttribute("aria-hidden", "true");
+      }
+
+      // Function to start the camera
+      function startCamera() {
+        navigator.mediaDevices
+          .getUserMedia({ video: { facingMode: "environment" } })
+          .then((s) => {
+            stream = s;
+            video.srcObject = stream;
+            video.classList.remove("hidden");
+            placeholder.classList.add("hidden");
+            scanButton.disabled = false;
+          })
+          .catch((error) => {
+            console.warn(
+              "Rear camera not available, switching to front camera."
+            );
+            navigator.mediaDevices
+              .getUserMedia({ video: { facingMode: "user" } })
+              .then((s) => {
+                stream = s;
+                video.srcObject = stream;
+                video.classList.remove("hidden");
+                placeholder.classList.add("hidden");
+                scanButton.disabled = false;
+              })
+              .catch((err) => {
+                console.error("Camera access denied or not supported: ", err);
+                showModal("Camera access is denied or not supported.");
+                placeholder.classList.remove("hidden");
+                scanButton.disabled = true;
+              });
+          });
+      }
+
+      // Start camera on page load
+      window.addEventListener("DOMContentLoaded", () => {
+        startCamera();
+        fetchData();
+      });
+
+      // Capture image or reset the camera
+      scanButton.addEventListener("click", () => captureImage());
+
+      // Capture image from the camera
+      function captureImage() {
+        if (!photoTaken) {
+          const canvas = document.createElement("canvas");
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          canvas.getContext("2d").drawImage(video, 0, 0);
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                processReceiptImage(blob); // Process the captured image
+              } else {
+                showModal("Failed to capture image. Please try again.");
+              }
+            },
+            "image/png",
+            0.8
+          ); // Adjust quality if needed
+
+          preview.src = canvas.toDataURL("image/png");
+          preview.classList.remove("hidden");
+          video.classList.add("hidden");
+          placeholder.classList.add("hidden");
+          scanButtonText.innerText = "Scan Again";
+          photoTaken = true;
+          nextToStep2.disabled = true; // Disable next button until processing is done
+        } else {
+          resetCamera();
+        }
+      }
+
+      function resetCamera() {
+        preview.classList.add("hidden");
+        video.classList.remove("hidden");
+        scanButtonText.innerText = "Scan Receipt";
+        photoTaken = false;
+        nextToStep2.disabled = true;
+        // Restart the camera stream
+        if (stream) {
+          stream.getTracks().forEach((track) => track.stop());
+        }
+        startCamera();
+      }
+
+      // Handle file upload for receipt
+      uploadInput.addEventListener("change", () => {
+        const file = uploadInput.files[0];
+
+        if (file) {
+          if (!file.type.startsWith("image/")) {
+            showModal("Please upload a valid image file.");
+            return;
+          }
+
+          // Display the image preview
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            preview.src = e.target.result;
             preview.classList.remove("hidden");
             video.classList.add("hidden");
             placeholder.classList.add("hidden");
-            scanButtonText.innerText = "Scan Again";
             photoTaken = true;
+            scanButtonText.innerText = "Scan Again";
             nextToStep2.disabled = true; // Disable next button until processing is done
-          } else {
-            resetCamera();
-          }
+          };
+          reader.readAsDataURL(file);
+
+          // Process the uploaded image
+          processReceiptImage(file);
         }
+      });
 
-        function resetCamera() {
-          preview.classList.add("hidden");
-          video.classList.remove("hidden");
-          scanButtonText.innerText = "Scan Receipt";
-          photoTaken = false;
-          nextToStep2.disabled = true;
-          // Restart the camera stream
-          if (stream) {
-            stream.getTracks().forEach((track) => track.stop());
-          }
-          startCamera();
+      // Update currency symbol when currency changes
+      currencySelect.addEventListener("change", () => {
+        if (currencySelect.value === "IDR") {
+          currencySymbol.textContent = "Rp";
+        } else if (currencySelect.value === "USD") {
+          currencySymbol.textContent = "$";
         }
+      });
 
-        // Handle file upload for receipt
-        uploadInput.addEventListener("change", () => {
-          const file = uploadInput.files[0];
+      // Sanitize HTML to prevent XSS
+      function sanitizeHTML(str) {
+        const temp = document.createElement("div");
+        temp.textContent = str;
+        return temp.innerHTML;
+      }
 
-          if (file) {
-            if (!file.type.startsWith("image/")) {
-              showModal("Please upload a valid image file.");
-              return;
-            }
+      // Process receipt image (upload to backend and extract total_value)
+      async function processReceiptImage(file) {
+        // Show processing modal
+        showProcessingModal();
 
-            // Display the image preview
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              preview.src = e.target.result;
-              preview.classList.remove("hidden");
-              video.classList.add("hidden");
-              placeholder.classList.add("hidden");
-              photoTaken = true;
-              scanButtonText.innerText = "Scan Again";
-              nextToStep2.disabled = true; // Disable next button until processing is done
-            };
-            reader.readAsDataURL(file);
+        const formData = new FormData();
+        formData.append("file", file); // Attach the image file
 
-            // Process the uploaded image
-            processReceiptImage(file);
-          }
-        });
+        try {
+          const response = await fetch("/upload_file", {
+            method: "POST",
+            body: formData,
+          });
 
-        // Update currency symbol when currency changes
-        currencySelect.addEventListener("change", () => {
-          if (currencySelect.value === "IDR") {
-            currencySymbol.textContent = "Rp";
-          } else if (currencySelect.value === "USD") {
-            currencySymbol.textContent = "$";
-          }
-        });
+          const data = await response.json();
 
-        // Sanitize HTML to prevent XSS
-        function sanitizeHTML(str) {
-          const temp = document.createElement("div");
-          temp.textContent = str;
-          return temp.innerHTML;
-        }
+          if (response.ok && data.extracted_text) {
+            let extractedText = data.extracted_text;
+            console.log("Extracted Text:", extractedText); // For debugging
 
-        // Process receipt image (upload to backend and extract total_value)
-        async function processReceiptImage(file) {
-          // Show processing modal
-          showProcessingModal();
+            // Step 1: Use regex to extract the first valid number-like pattern
+            const regex = /\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?/;
+            const match = extractedText.match(regex);
 
-          const formData = new FormData();
-          formData.append("file", file); // Attach the image file
+            if (match) {
+              let amountStr = match[0];
+              console.log("Matched Amount String:", amountStr); // For debugging
 
-          try {
-            const response = await fetch("/upload_file", {
-              method: "POST",
-              body: formData,
-            });
+              // Step 2: Remove any non-digit, non-dot, non-comma characters from the matched string
+              amountStr = amountStr.replace(/[^\d.,]/g, "").trim();
 
-            const data = await response.json();
+              let cleanedAmount = "";
 
-            if (response.ok && data.extracted_text) {
-              let extractedText = data.extracted_text;
-              console.log("Extracted Text:", extractedText); // For debugging
-
-              // Step 1: Use regex to extract the first valid number-like pattern
-              const regex = /\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?/;
-              const match = extractedText.match(regex);
-
-              if (match) {
-                let amountStr = match[0];
-                console.log("Matched Amount String:", amountStr); // For debugging
-
-                // Step 2: Remove any non-digit, non-dot, non-comma characters from the matched string
-                amountStr = amountStr.replace(/[^\d.,]/g, "").trim();
-
-                let cleanedAmount = "";
-
-                if (amountStr.includes(",") && amountStr.includes(".")) {
-                  // Both comma and dot are present
-                  // Assume the last separator is the decimal separator
-                  const lastComma = amountStr.lastIndexOf(",");
-                  const lastDot = amountStr.lastIndexOf(".");
-                  if (lastDot > lastComma) {
-                    // Dot is the decimal separator
-                    // Remove all commas (thousand separators)
-                    const integerPart = amountStr
-                      .slice(0, lastDot)
-                      .replace(/,/g, "");
-                    const decimalPart = amountStr.slice(lastDot + 1);
-                    cleanedAmount = `${integerPart}.${decimalPart}`;
-                  } else {
-                    // Comma is the decimal separator
-                    // Remove all dots (thousand separators)
-                    const integerPart = amountStr
-                      .slice(0, lastComma)
-                      .replace(/\./g, "");
-                    const decimalPart = amountStr.slice(lastComma + 1);
-                    cleanedAmount = `${integerPart}.${decimalPart}`;
-                  }
-                } else if (amountStr.includes(",")) {
-                  // Only comma is present
-                  const commaIndex = amountStr.lastIndexOf(",");
-                  if (amountStr.length - commaIndex - 1 === 2) {
-                    // Two digits after comma, treat as decimal separator
-                    // Replace comma with dot
-                    const integerPart = amountStr
-                      .slice(0, commaIndex)
-                      .replace(/,/g, "");
-                    const decimalPart = amountStr.slice(commaIndex + 1);
-                    cleanedAmount = `${integerPart}.${decimalPart}`;
-                  } else {
-                    // Treat all commas as thousand separators
-                    cleanedAmount = amountStr.replace(/,/g, "");
-                  }
-                } else if (amountStr.includes(".")) {
-                  // Only dot is present
-                  const dotIndex = amountStr.lastIndexOf(".");
-                  if (amountStr.length - dotIndex - 1 === 2) {
-                    // Two digits after dot, treat as decimal separator
-                    cleanedAmount = amountStr;
-                  } else {
-                    // Treat all dots as thousand separators
-                    cleanedAmount = amountStr.replace(/\./g, "");
-                  }
+              if (amountStr.includes(",") && amountStr.includes(".")) {
+                // Both comma and dot are present
+                // Assume the last separator is the decimal separator
+                const lastComma = amountStr.lastIndexOf(",");
+                const lastDot = amountStr.lastIndexOf(".");
+                if (lastDot > lastComma) {
+                  // Dot is the decimal separator
+                  // Remove all commas (thousand separators)
+                  const integerPart = amountStr
+                    .slice(0, lastDot)
+                    .replace(/,/g, "");
+                  const decimalPart = amountStr.slice(lastDot + 1);
+                  cleanedAmount = `${integerPart}.${decimalPart}`;
                 } else {
-                  // No separators, just digits
-                  cleanedAmount = amountStr;
+                  // Comma is the decimal separator
+                  // Remove all dots (thousand separators)
+                  const integerPart = amountStr
+                    .slice(0, lastComma)
+                    .replace(/\./g, "");
+                  const decimalPart = amountStr.slice(lastComma + 1);
+                  cleanedAmount = `${integerPart}.${decimalPart}`;
                 }
-
-                console.log("Cleaned Amount:", cleanedAmount); // For debugging
-
-                // Validate the cleaned amount
-                if (!isNaN(cleanedAmount) && cleanedAmount.length > 0) {
-                  amountInput.value = cleanedAmount;
-                  showModal("Total value extracted successfully!");
-                  nextToStep2.disabled = false; // Enable the next button
-                  document
-                    .getElementById("formModal")
-                    .classList.remove("hidden");
-                  // Move focus to the form modal for accessibility
-                  document.getElementById("evidenceFilesInput").focus();
+              } else if (amountStr.includes(",")) {
+                // Only comma is present
+                const commaIndex = amountStr.lastIndexOf(",");
+                if (amountStr.length - commaIndex - 1 === 2) {
+                  // Two digits after comma, treat as decimal separator
+                  // Replace comma with dot
+                  const integerPart = amountStr
+                    .slice(0, commaIndex)
+                    .replace(/,/g, "");
+                  const decimalPart = amountStr.slice(commaIndex + 1);
+                  cleanedAmount = `${integerPart}.${decimalPart}`;
                 } else {
-                  showModal(
-                    "Failed to extract a valid amount from the receipt. Please enter manually."
-                  );
-                  nextToStep2.disabled = true;
+                  // Treat all commas as thousand separators
+                  cleanedAmount = amountStr.replace(/,/g, "");
+                }
+              } else if (amountStr.includes(".")) {
+                // Only dot is present
+                const dotIndex = amountStr.lastIndexOf(".");
+                if (amountStr.length - dotIndex - 1 === 2) {
+                  // Two digits after dot, treat as decimal separator
+                  cleanedAmount = amountStr;
+                } else {
+                  // Treat all dots as thousand separators
+                  cleanedAmount = amountStr.replace(/\./g, "");
                 }
               } else {
+                // No separators, just digits
+                cleanedAmount = amountStr;
+              }
+
+              console.log("Cleaned Amount:", cleanedAmount); // For debugging
+
+              // Validate the cleaned amount
+              if (!isNaN(cleanedAmount) && cleanedAmount.length > 0) {
+                amountInput.value = cleanedAmount;
+                showModal("Total value extracted successfully!");
+                nextToStep2.disabled = false; // Enable the next button
+                document
+                  .getElementById("formModal")
+                  .classList.remove("hidden");
+                // Move focus to the form modal for accessibility
+                document.getElementById("evidenceFilesInput").focus();
+              } else {
                 showModal(
-                  "Failed to find a valid amount in the receipt. Please enter manually."
+                  "Failed to extract a valid amount from the receipt. Please enter manually."
                 );
                 nextToStep2.disabled = true;
               }
             } else {
-              showModal(`Error: ${data.error || "Unknown error occurred."}`);
-              nextToStep2.disabled = true; // Keep the next button disabled
+              showModal(
+                "Failed to find a valid amount in the receipt. Please enter manually."
+              );
+              nextToStep2.disabled = true;
             }
-          } catch (error) {
-            console.error("Error processing receipt:", error);
-            showModal(
-              "There was an error processing the receipt. Please try again."
-            );
+          } else {
+            showModal(`Error: ${data.error || "Unknown error occurred."}`);
             nextToStep2.disabled = true; // Keep the next button disabled
-          } finally {
-            // Hide processing modal
-            hideProcessingModal();
           }
+        } catch (error) {
+          console.error("Error processing receipt:", error);
+          showModal(
+            "There was an error processing the receipt. Please try again."
+          );
+          nextToStep2.disabled = true; // Keep the next button disabled
+        } finally {
+          // Hide processing modal
+          hideProcessingModal();
         }
+      }
 
-        // Fetch 'Id Rencana' and 'Account SKKO' from backend
-        async function fetchData() {
-          // Show processing modal
-          showProcessingModal();
-          try {
-            const [idRencanaResponse, accountSkkosResponse] = await Promise.all(
-              [fetch("/fetch_id_rencana"), fetch("/fetch_account_skkos")]
-            );
+      // Fetch 'Id Rencana' and 'Account SKKO' from backend
+      async function fetchData() {
+        // Show processing modal
+        showProcessingModal();
+        try {
+          const [idRencanaResponse, accountSkkosResponse] = await Promise.all(
+            [fetch("/fetch_id_rencana"), fetch("/fetch_account_skkos")]
+          );
 
-            if (!idRencanaResponse.ok || !accountSkkosResponse.ok) {
-              throw new Error("Failed to fetch dropdown data.");
-            }
-
-            const idRencanaData = await idRencanaResponse.json();
-            const accountSkkosData = await accountSkkosResponse.json();
-
-            idRencanaData.forEach((id) => {
-              const option = document.createElement("option");
-              option.value = id;
-              option.textContent = id;
-              rencanaIdSelect.appendChild(option);
-            });
-
-            accountSkkosData.forEach((account) => {
-              const option = document.createElement("option");
-              option.value = account;
-              option.textContent = account;
-              accountIdSelect.appendChild(option);
-            });
-          } catch (error) {
-            console.error("Error fetching data:", error);
-            showModal("Error fetching dropdown data. Please try again.");
-          } finally {
-            // Hide processing modal
-            hideProcessingModal();
+          if (!idRencanaResponse.ok || !accountSkkosResponse.ok) {
+            throw new Error("Failed to fetch dropdown data.");
           }
+
+          const idRencanaData = await idRencanaResponse.json();
+          const accountSkkosData = await accountSkkosResponse.json();
+
+          idRencanaData.forEach((id) => {
+            const option = document.createElement("option");
+            option.value = id;
+            option.textContent = id;
+            rencanaIdSelect.appendChild(option);
+          });
+
+          accountSkkosData.forEach((account) => {
+            const option = document.createElement("option");
+            option.value = account;
+            option.textContent = account;
+            accountIdSelect.appendChild(option);
+          });
+        } catch (error) {
+          console.error("Error fetching data:", error);
+          showModal("Error fetching dropdown data. Please try again.");
+        } finally {
+          // Hide processing modal
+          hideProcessingModal();
         }
+      }
 
-        // Event listener for 'ID Rencana' selection
-        rencanaIdSelect.addEventListener("change", handleRencanaIdChange);
+      // Event listener for 'ID Rencana' selection
+      rencanaIdSelect.addEventListener("change", handleRencanaIdChange);
 
-        async function handleRencanaIdChange() {
-          const selectedIdRencana = rencanaIdSelect.value;
+      async function handleRencanaIdChange() {
+        const selectedIdRencana = rencanaIdSelect.value;
 
-          if (!selectedIdRencana) return;
+        if (!selectedIdRencana) return;
 
-          // Show processing modal
-          showProcessingModal();
+        // Show processing modal
+        showProcessingModal();
 
-          // Fetch the details for the selected ID Rencana
-          try {
-            const response = await fetch(
-              `/get_rencana_details?rencana_id=${encodeURIComponent(
-                selectedIdRencana
-              )}`
-            );
-            if (!response.ok) {
-              throw new Error("Network response was not ok");
-            }
-            const data = await response.json();
+        // Fetch the details for the selected ID Rencana
+        try {
+          const response = await fetch(
+            `/get_rencana_details?rencana_id=${encodeURIComponent(
+              selectedIdRencana
+            )}`
+          );
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          const data = await response.json();
 
-            // Format the nominal value as Indonesian Rupiah
-            const formatter = new Intl.NumberFormat("id-ID", {
-              style: "currency",
-              currency: "IDR",
-              minimumFractionDigits: 0, // You can adjust this based on your preference
-            });
+          // Format the nominal value as Indonesian Rupiah
+          const formatter = new Intl.NumberFormat("id-ID", {
+            style: "currency",
+            currency: "IDR",
+            minimumFractionDigits: 0, // You can adjust this based on your preference
+          });
 
-            const formattedNominal = formatter.format(data.nominal);
+          const formattedNominal = formatter.format(data.nominal);
 
-            // Sanitize data before inserting into the DOM
-            const sanitizedDetails = `
+          // Sanitize data before inserting into the DOM
+          const sanitizedDetails = `
               <p><strong>Start Date A/R:</strong> ${sanitizeHTML(
-                data.start_date_ar
-              )}</p>
+            data.start_date_ar
+          )}</p>
               <p><strong>End Date A/R:</strong> ${sanitizeHTML(
-                data.end_date_ar
-              )}</p>
+            data.end_date_ar
+          )}</p>
               <p><strong>Requestor:</strong> ${sanitizeHTML(data.requestor)}</p>
               <p><strong>Unit:</strong> ${sanitizeHTML(data.unit)}</p>
               <p><strong>Nominal:</strong> ${sanitizeHTML(formattedNominal)}</p>
               <p><strong>ID Rencana:</strong> ${sanitizeHTML(
-                data.id_rencana
-              )}</p>
+            data.id_rencana
+          )}</p>
             `;
 
-            // Display the details in the modal
-            rencanaDetailsDiv.innerHTML = sanitizedDetails;
+          // Display the details in the modal
+          rencanaDetailsDiv.innerHTML = sanitizedDetails;
 
-            // Show the modal
-            rencanaModal.classList.remove("hidden");
-            // Move focus to the YES button for accessibility
-            rencanaYesButton.focus();
-          } catch (error) {
-            console.error("Error fetching Rencana details:", error);
-            showModal("Error fetching Rencana details. Please try again.");
-          } finally {
-            // Hide processing modal
-            hideProcessingModal();
-          }
+          // Show the modal
+          rencanaModal.classList.remove("hidden");
+          // Move focus to the YES button for accessibility
+          rencanaYesButton.focus();
+        } catch (error) {
+          console.error("Error fetching Rencana details:", error);
+          showModal("Error fetching Rencana details. Please try again.");
+        } finally {
+          // Hide processing modal
+          hideProcessingModal();
+        }
+      }
+
+      // Handle NO and YES buttons in the modal
+      rencanaNoButton.addEventListener("click", () => {
+        // Reset the ID Rencana selection
+        rencanaIdSelect.value = "";
+        // Hide the modal
+        rencanaModal.classList.add("hidden");
+        // Return focus to the ID Rencana select
+        rencanaIdSelect.focus();
+      });
+
+      rencanaYesButton.addEventListener("click", () => {
+        // Proceed with the selected ID Rencana
+        // Hide the modal
+        rencanaModal.classList.add("hidden");
+        // Move focus to the next step button if needed
+      });
+
+      nextToStep3.addEventListener("click", () => {
+        // Validate required fields
+        let hasError = false;
+
+        if (!accountIdSelect.value) {
+          accountError.classList.remove("hidden");
+          hasError = true;
+        } else {
+          accountError.classList.add("hidden");
         }
 
-        // Handle NO and YES buttons in the modal
-        rencanaNoButton.addEventListener("click", () => {
-          // Reset the ID Rencana selection
-          rencanaIdSelect.value = "";
-          // Hide the modal
-          rencanaModal.classList.add("hidden");
-          // Return focus to the ID Rencana select
-          rencanaIdSelect.focus();
-        });
+        if (!rencanaIdSelect.value) {
+          rencanaError.classList.remove("hidden");
+          hasError = true;
+        } else {
+          rencanaError.classList.add("hidden");
+        }
 
-        rencanaYesButton.addEventListener("click", () => {
-          // Proceed with the selected ID Rencana
-          // Hide the modal
-          rencanaModal.classList.add("hidden");
-          // Move focus to the next step button if needed
-        });
+        if (!uraianInput.value.trim()) {
+          uraianError.classList.remove("hidden");
+          hasError = true;
+        } else {
+          uraianError.classList.add("hidden");
+        }
 
-        nextToStep3.addEventListener("click", () => {
-          // Validate required fields
-          let hasError = false;
+        if (!judulLaporanInput.value.trim()) {
+          judulError.classList.remove("hidden");
+          hasError = true;
+        } else {
+          judulError.classList.add("hidden");
+        }
 
-          if (!accountIdSelect.value) {
-            accountError.classList.remove("hidden");
-            hasError = true;
-          } else {
-            accountError.classList.add("hidden");
-          }
+        if (hasError) {
+          return;
+        }
+        document.getElementById("formModal").classList.add("hidden");
+        document.getElementById("summaryModal").classList.remove("hidden");
 
-          if (!rencanaIdSelect.value) {
-            rencanaError.classList.remove("hidden");
-            hasError = true;
-          } else {
-            rencanaError.classList.add("hidden");
-          }
-
-          if (!uraianInput.value.trim()) {
-            uraianError.classList.remove("hidden");
-            hasError = true;
-          } else {
-            uraianError.classList.add("hidden");
-          }
-
-          if (!judulLaporanInput.value.trim()) {
-            judulError.classList.remove("hidden");
-            hasError = true;
-          } else {
-            judulError.classList.add("hidden");
-          }
-
-          if (hasError) {
-            return;
-          }
-          document.getElementById("formModal").classList.add("hidden");
-          document.getElementById("summaryModal").classList.remove("hidden");
-
-          // Populate review information
-          reviewInfo.innerHTML = `
+        // Populate review information
+        reviewInfo.innerHTML = `
             <p><strong>Amount:</strong> ${sanitizeHTML(amountInput.value)}</p>
             <p><strong>Currency:</strong> ${sanitizeHTML(
-              currencySelect.value
-            )}</p>
+          currencySelect.value
+        )}</p>
             <p><strong>Account SKKO:</strong> ${sanitizeHTML(
-              accountIdSelect.value
-            )}</p>
+          accountIdSelect.value
+        )}</p>
             <p><strong>ID Rencana:</strong> ${sanitizeHTML(
-              rencanaIdSelect.value
-            )}</p>
+          rencanaIdSelect.value
+        )}</p>
             <p><strong>Uraian:</strong> ${sanitizeHTML(uraianInput.value)}</p>
             <p><strong>Judul Laporan:</strong> ${sanitizeHTML(
-              judulLaporanInput.value
-            )}</p>
+          judulLaporanInput.value
+        )}</p>
           `;
 
-          submitButton.disabled = false; // Enable submit button
-          // Move focus to the Submit button for accessibility
-          submitButton.focus();
-        });
+        submitButton.disabled = false; // Enable submit button
+        // Move focus to the Submit button for accessibility
+        submitButton.focus();
+      });
 
-        backToStep2.addEventListener("click", () => {
-          document.getElementById("summaryModal").classList.add("hidden");
-          document.getElementById("formModal").classList.remove("hidden");
-          // Move focus back to the close modal button
-          document.getElementById("closeModalButton").focus();
-        });
+      backToStep2.addEventListener("click", () => {
+        document.getElementById("summaryModal").classList.add("hidden");
+        document.getElementById("formModal").classList.remove("hidden");
+        // Move focus back to the close modal button
+        document.getElementById("closeModalButton").focus();
+      });
 
-        // Submit form data to the backend
-        submitButton.addEventListener("click", async () => {
-          const selectedIdRencana = rencanaIdSelect.value;
-          const selectedAccountId = accountIdSelect.value;
-          const currency = currencySelect.value; // Get selected currency
-          const totalAmount = amountInput.value;
-          const uraian = uraianInput.value;
-          const judulLaporan = judulLaporanInput.value;
-          const evidenceFiles = evidenceFilesInput.files;
-          const receiptLink = receiptLinkInput.value;
+      // Submit form data to the backend
+      submitButton.addEventListener("click", async () => {
+        const selectedIdRencana = rencanaIdSelect.value;
+        const selectedAccountId = accountIdSelect.value;
+        const currency = currencySelect.value; // Get selected currency
+        const totalAmount = amountInput.value;
+        const uraian = uraianInput.value;
+        const judulLaporan = judulLaporanInput.value;
+        const evidenceFiles = evidenceFilesInput.files;
+        const receiptLink = receiptLinkInput.value;
 
-          // Show processing modal
-          showProcessingModal();
-          submitButton.disabled = true; // Disable the submit button to prevent multiple submissions
+        // Show processing modal
+        showProcessingModal();
+        submitButton.disabled = true; // Disable the submit button to prevent multiple submissions
 
-          // Prepare data to send to the backend
-          const payload = new FormData();
-          payload.append("rencana_id", selectedIdRencana);
-          payload.append("account_skkos_id", selectedAccountId);
-          payload.append("currency", currency);
-          payload.append("amount", totalAmount);
-          payload.append("uraian", uraian);
-          payload.append("judulLaporan", judulLaporan);
+        // Prepare data to send to the backend
+        const payload = new FormData();
+        payload.append("rencana_id", selectedIdRencana);
+        payload.append("account_skkos_id", selectedAccountId);
+        payload.append("currency", currency);
+        payload.append("amount", totalAmount);
+        payload.append("uraian", uraian);
+        payload.append("judulLaporan", judulLaporan);
 
-          // Append evidence files to the payload
-          if (evidenceFiles.length > 0) {
-            for (let i = 0; i < evidenceFiles.length; i++) {
-              payload.append("evidence_files", evidenceFiles[i]);
-            }
+        // Append evidence files to the payload
+        if (evidenceFiles.length > 0) {
+          for (let i = 0; i < evidenceFiles.length; i++) {
+            payload.append("evidence_files", evidenceFiles[i]);
           }
-
-          try {
-            const response = await fetch("/submit", {
-              method: "POST",
-              body: payload,
-            });
-
-            const result = await response.json();
-
-            if (response.ok && result.success) {
-              document.getElementById("summaryModal").classList.add("hidden");
-              showModal("Data submitted successfully!");
-              // Reset the form and variables
-              resetForm();
-            } else {
-              document.getElementById("summaryModal").classList.add("hidden");
-              showModal(`Submission failed: ${result.message}`);
-            }
-          } catch (error) {
-            document.getElementById("summaryModal").classList.add("hidden");
-            console.error("Error during submission:", error);
-            showModal(
-              "There was an error during submission. Please try again."
-            );
-          } finally {
-            document.getElementById("summaryModal").classList.add("hidden");
-            // Hide processing modal and re-enable submit button
-            hideProcessingModal();
-            submitButton.disabled = false;
-          }
-        });
-
-        // Reset form function
-        function resetForm() {
-          // Automatically reset the form without confirmation
-          rencanaIdSelect.value = "";
-          accountIdSelect.value = "";
-          currencySelect.value = "IDR"; // Reset currency to default
-          currencySymbol.textContent = "Rp"; // Reset symbol to default
-          amountInput.value = "";
-          uraianInput.value = "";
-          judulLaporanInput.value = "";
-          receiptLinkInput.value = "";
-          evidenceLinksInput.value = "";
-          evidenceFilesInput.value = "";
-          uploadInput.value = "";
-          submitButton.disabled = true;
-          nextToStep2.disabled = true;
-          amountError.classList.add("hidden");
-          accountError.classList.add("hidden");
-          rencanaError.classList.add("hidden");
-          uraianError.classList.add("hidden");
-          judulError.classList.add("hidden");
-
-          if (photoTaken) {
-            resetCamera();
-          }
-
-          // Restart the camera
-          startCamera();
         }
-        // Since the reset button is removed in multi-step, we can reset on form completion or provide a reset link if needed.
-      })();
-    </script>
-  </body>
+
+        try {
+          const response = await fetch("/submit", {
+            method: "POST",
+            body: payload,
+          });
+
+          const result = await response.json();
+
+          if (response.ok && result.success) {
+            document.getElementById("summaryModal").classList.add("hidden");
+            showModal("Data submitted successfully!");
+            // Reset the form and variables
+            resetForm();
+          } else {
+            document.getElementById("summaryModal").classList.add("hidden");
+            showModal(`Submission failed: ${result.message}`);
+          }
+        } catch (error) {
+          document.getElementById("summaryModal").classList.add("hidden");
+          console.error("Error during submission:", error);
+          showModal(
+            "There was an error during submission. Please try again."
+          );
+        } finally {
+          document.getElementById("summaryModal").classList.add("hidden");
+          // Hide processing modal and re-enable submit button
+          hideProcessingModal();
+          submitButton.disabled = false;
+        }
+      });
+
+      // Reset form function
+      function resetForm() {
+        // Automatically reset the form without confirmation
+        rencanaIdSelect.value = "";
+        accountIdSelect.value = "";
+        currencySelect.value = "IDR"; // Reset currency to default
+        currencySymbol.textContent = "Rp"; // Reset symbol to default
+        amountInput.value = "";
+        uraianInput.value = "";
+        judulLaporanInput.value = "";
+        receiptLinkInput.value = "";
+        evidenceLinksInput.value = "";
+        evidenceFilesInput.value = "";
+        uploadInput.value = "";
+        submitButton.disabled = true;
+        nextToStep2.disabled = true;
+        amountError.classList.add("hidden");
+        accountError.classList.add("hidden");
+        rencanaError.classList.add("hidden");
+        uraianError.classList.add("hidden");
+        judulError.classList.add("hidden");
+
+        if (photoTaken) {
+          resetCamera();
+        }
+
+        // Restart the camera
+        startCamera();
+      }
+      // Since the reset button is removed in multi-step, we can reset on form completion or provide a reset link if needed.
+    })();
+  </script>
+</body>
+
 </html>
