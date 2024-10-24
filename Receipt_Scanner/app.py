@@ -6,10 +6,12 @@ import logging
 import requests
 import numpy as np
 import imghdr
+import pytz
 from ultralytics import YOLO
 from dotenv import load_dotenv
 from google.cloud import vision
 from datetime import datetime, timedelta
+
 from werkzeug.utils import secure_filename
 from flask import (
     Flask,
@@ -50,7 +52,7 @@ GOOGLE_SHEET_ID = os.getenv("GOOGLE_SHEET_ID")
 
 # Set up Flask app
 app = Flask(__name__)
-UPLOAD_FOLDER = "./uploads"
+UPLOAD_FOLDER = "./tmp/uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024  # Limit file uploads to 100MB
 
@@ -217,7 +219,11 @@ def append_to_sheet(
 
     # Open the Google Sheet and access the REKAPREALISASI worksheet
     sheet = client.open_by_key(GOOGLE_SHEET_ID).worksheet("REKAPREALISASI")
-    current_time = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+    # Set timezone to GMT+8
+    gmt8 = pytz.timezone('Asia/Singapore')  # or 'Asia/Shanghai' for China GMT+8
+
+    # Get the current time in GMT+8
+    current_time = datetime.now(gmt8).strftime("%d.%m.%Y %H:%M:%S")
 
     data_to_append = [
         current_time,  # Column A: Tanggal
@@ -278,8 +284,6 @@ def submit_data():
         amount = escape(request.form.get("amount"))
         uraian = escape(request.form.get("uraian"))
         judulLaporan = escape(request.form.get("judulLaporan"))
-        receipt_link = request.form.get("receipt_link")  # Link from Receipt API
-        evidence_links = request.form.get("evidence_links")  # Comma-separated links
 
         # Validate inputs
         if not account_skkos_id:
@@ -290,65 +294,144 @@ def submit_data():
         filename = session.get("receipt_filename")
         content_type = session.get("receipt_content_type")
         extracted_text = session.get("extracted_text")
-        account_skkos = session.get("accountSKKO")
 
-        if not receipt_link:
-            # Upload the receipt to the Receipt API
-            if not file_path or not filename or not content_type:
-                return jsonify({"error": "No receipt file found to upload."}), 400
+        if not file_path or not filename or not content_type:
+            return jsonify({"error": "No receipt file found to upload."}), 400
 
-            # Prepare additional data to send to Receipt API
-            payload = {
-                "accountSKKO": account_skkos_id,
-                "extracted_text": extracted_text,
-            }
+        # Prepare additional data to send to Receipt API
+        receipt_payload = {
+            "accountSKKO": account_skkos_id,
+            "extracted_text": extracted_text,
+        }
 
-            # Upload the receipt to the external Receipt API
-            with open(file_path, "rb") as receipt_file:
-                files = {
-                    "file": (
-                        secure_filename(filename),
-                        receipt_file,
-                        content_type,
-                    )
-                }
-                try:
-                    receipt_api_response = requests.post(
-                        RECEIPT_API_ENDPOINT,
-                        data=payload,  # Send payload as form data
-                        files=files,
-                        timeout=500,  # Set timeout for the request
-                    )
-                except requests.Timeout:
-                    return jsonify({"error": "Receipt API request timed out."}), 504
-
-            if receipt_api_response.status_code == 200:
-                receipt_api_data = receipt_api_response.json()
-                if receipt_api_data.get("status") == "success":
-                    receipt_link = receipt_api_data["data"]["fileLink"]
-                    # Remove the temporary file after upload
-                    os.remove(file_path)
-                    # Remove file info from session
-                    session.pop("receipt_file_path", None)
-                    session.pop("receipt_filename", None)
-                    session.pop("receipt_content_type", None)
-                    session.pop("extracted_text", None)
-                else:
-                    logger.error(
-                        f"Receipt API failed: {receipt_api_data.get('message')}"
-                    )
-                    return (
-                        jsonify({"error": "Failed to upload receipt to Receipt API."}),
-                        500,
-                    )
-            else:
-                logger.error(
-                    f"Receipt API responded with status code {receipt_api_response.status_code}"
+        # Upload the receipt to the external Receipt API
+        with open(file_path, "rb") as receipt_file:
+            receipt_files = {
+                "file": (
+                    secure_filename(filename),
+                    receipt_file,
+                    content_type,
                 )
+            }
+            try:
+                receipt_api_response = requests.post(
+                    RECEIPT_API_ENDPOINT,
+                    data=receipt_payload,
+                    files=receipt_files,
+                    timeout=500,  # Set timeout for the request
+                )
+            except requests.Timeout:
+                return jsonify({"error": "Receipt API request timed out."}), 504
+
+        if receipt_api_response.status_code == 200:
+            receipt_api_data = receipt_api_response.json()
+            if receipt_api_data.get("status") == "success":
+                receipt_link = receipt_api_data["data"]["fileLink"]
+                # Remove the temporary file after upload
+                os.remove(file_path)
+                # Remove file info from session
+                session.pop("receipt_file_path", None)
+                session.pop("receipt_filename", None)
+                session.pop("receipt_content_type", None)
+                session.pop("extracted_text", None)
+            else:
+                logger.error(f"Receipt API failed: {receipt_api_data.get('message')}")
                 return (
-                    jsonify({"error": "Receipt API responded with an error."}),
+                    jsonify({"error": "Failed to upload receipt to Receipt API."}),
                     500,
                 )
+        else:
+            logger.error(
+                f"Receipt API responded with status code {receipt_api_response.status_code}"
+            )
+            return (
+                jsonify({"error": "Receipt API responded with an error."}),
+                500,
+            )
+
+        # Handle evidence files upload
+        evidence_links = []
+        if "evidence_files" in request.files:
+            evidence_files = request.files.getlist("evidence_files")
+
+            # Prepare the payload for the Evidence API
+            files_payload = []
+            for file in evidence_files:
+                if file.filename == "":
+                    logger.warning("Skipped a file with no filename.")
+                    continue  # Skip files with no name
+
+                # Validate file type using imghdr
+                file.seek(0)
+                header = file.read(512)
+                file.seek(0)
+                file_type = imghdr.what(None, header)
+                if not file_type:
+                    logger.warning(f"Skipped invalid image file: {file.filename}")
+                    continue  # Skip invalid image files
+
+                # Validate file size (e.g., max 100MB per file)
+                file.seek(0, os.SEEK_END)
+                file_length = file.tell()
+                if file_length > 100 * 1024 * 1024:  # Maximum Size Evidence
+                    logger.warning(
+                        f"Skipped file exceeding size limit: {file.filename}"
+                    )
+                    continue  # Skip files exceeding size limit
+                file.seek(0)
+
+                # Append to the files_payload with the correct field name "files"
+                files_payload.append(
+                    (
+                        "files",
+                        (
+                            secure_filename(file.filename),
+                            file.read(),
+                            file.content_type,
+                        ),
+                    )
+                )
+
+            if files_payload:
+                # Include 'accountSKKO' in the data payload
+                data_payload = {
+                    "accountSKKO": account_skkos_id,
+                }
+
+                try:
+                    evidence_api_response = requests.post(
+                        EVIDENCE_API_ENDPOINT,
+                        data=data_payload,
+                        files=files_payload,
+                        timeout=500,  # Set timeout for the request
+                    )
+
+                    if evidence_api_response.status_code == 200:
+                        evidence_api_data = evidence_api_response.json()
+                        if evidence_api_data.get("status") == "success":
+                            data = evidence_api_data.get("data", {})
+                            if isinstance(data, list):
+                                for item in data:
+                                    file_link = item.get("fileLink")
+                                    if file_link:
+                                        evidence_links.append(file_link)
+                            elif isinstance(data, dict):
+                                file_link = data.get("fileLink")
+                                if file_link:
+                                    evidence_links.append(file_link)
+                        else:
+                            logger.error(
+                                f"Evidence API failed: {evidence_api_data.get('message')}"
+                            )
+                    else:
+                        logger.error(
+                            f"Evidence API responded with status code {evidence_api_response.status_code}"
+                        )
+                except Exception as e:
+                    logger.error(
+                        f"Exception during upload to Evidence API: {str(e)}",
+                        exc_info=True,
+                    )
 
         # Append data to Google Sheet
         append_to_sheet(
@@ -358,7 +441,7 @@ def submit_data():
             uraian,
             judulLaporan,
             receipt_link,
-            evidence_links,
+            ", ".join(evidence_links),
         )
 
         return jsonify(
@@ -417,10 +500,7 @@ def fetch_account_skkos():
 def upload_file():
     """Handle receipt file upload and extract total_value."""
     try:
-        # Extract 'accountSKKO' from form data
-        account_skkos = escape(request.form.get("accountSKKO"))
-        if not account_skkos:
-            return jsonify({"error": "Account SKKO is required."}), 400
+        # No longer require 'accountSKKO' here
 
         if "file" not in request.files:
             return jsonify({"error": "No file part"}), 400
@@ -477,14 +557,12 @@ def upload_file():
                 session["receipt_filename"] = file.filename
                 session["receipt_content_type"] = file.content_type
                 session["extracted_text"] = extracted_text
-                session["accountSKKO"] = account_skkos
 
                 # Return the extracted_text to the frontend
                 return (
                     jsonify(
                         {
                             "extracted_text": extracted_text,
-                            "accountSKKO": account_skkos,
                             "message": "Total value extracted successfully.",
                         }
                     ),
@@ -513,249 +591,7 @@ def upload_file():
         return jsonify({"error": "An unexpected error occurred."}), 500
 
 
-@app.route("/upload_evidence", methods=["POST"])
-def upload_evidence():
-    """Handle evidence files upload and return their links."""
-
-    # Extract 'accountSKKO' from form data
-    account_skkos = escape(request.form.get("accountSKKO"))
-    if not account_skkos:
-        return jsonify({"error": "Account SKKO is required for evidence upload."}), 400
-
-    try:
-        if "files" not in request.files:
-            return jsonify({"error": "No files part"}), 400
-
-        files = request.files.getlist("files")
-
-        if not files or len(files) == 0:
-            return jsonify({"error": "No files selected for upload."}), 400
-
-        evidence_links = []
-        failed_files = []
-
-        # Prepare the payload for the Evidence API
-        files_payload = []
-        for file in files:
-            if file.filename == "":
-                logger.warning("Skipped a file with no filename.")
-                failed_files.append(
-                    {"filename": file.filename, "reason": "No filename provided."}
-                )
-                continue  # Skip files with no name
-
-            # Validate file type using imghdr
-            file.seek(0)
-            header = file.read(512)
-            file.seek(0)
-            file_type = imghdr.what(None, header)
-            if not file_type:
-                logger.warning(f"Skipped invalid image file: {file.filename}")
-                failed_files.append(
-                    {"filename": file.filename, "reason": "Invalid image file."}
-                )
-                continue  # Skip invalid image files
-
-            # Validate file size (e.g., max 100MB per file)
-            file.seek(0, os.SEEK_END)
-            file_length = file.tell()
-            if file_length > 100 * 1024 * 1024:  # Maximum Size Evidence
-                logger.warning(f"Skipped file exceeding size limit: {file.filename}")
-                failed_files.append(
-                    {"filename": file.filename, "reason": "File size exceeds limit."}
-                )
-                continue  # Skip files exceeding size limit
-            file.seek(0)
-
-            # Save the file temporarily
-            temp_filename = generate_temp_filename()
-            file_path = os.path.join(app.config["UPLOAD_FOLDER"], temp_filename)
-            file.save(file_path)
-
-            # Append to the files_payload with the correct field name "files"
-            files_payload.append(
-                (
-                    "files",
-                    (
-                        secure_filename(file.filename),
-                        open(file_path, "rb"),
-                        file.content_type,
-                    ),
-                )
-            )
-
-        if not files_payload:
-            return (
-                jsonify(
-                    {
-                        "error": "No valid evidence files to upload.",
-                        "failed_files": failed_files,
-                    }
-                ),
-                400,
-            )
-
-        # Upload to Evidence API
-        try:
-            # Include headers if required
-            headers = {}
-
-            # Include 'accountSKKO' in the data payload
-            data_payload = {
-                "accountSKKO": account_skkos,
-            }
-
-            evidence_api_response = requests.post(
-                EVIDENCE_API_ENDPOINT,
-                data=data_payload,
-                files=files_payload,
-                headers=headers,
-                timeout=500,  # Set timeout for the request
-            )
-
-            logger.info(
-                f"Evidence API responded with status code {evidence_api_response.status_code}"
-            )
-
-            if evidence_api_response.status_code == 200:
-                try:
-                    evidence_api_data = evidence_api_response.json()
-                    logger.info(f"Evidence API response data: {evidence_api_data}")
-
-                    # Assuming the API returns a list of file links
-                    status = evidence_api_data.get("status", "").lower()
-                    if status == "success":
-                        data = evidence_api_data.get("data", {})
-                        # If multiple files, ensure data contains a list of links
-                        if isinstance(data, list):
-                            for item in data:
-                                file_link = item.get("fileLink")
-                                if file_link:
-                                    evidence_links.append(file_link)
-                                else:
-                                    logger.error(
-                                        "Missing 'fileLink' in Evidence API response item."
-                                    )
-                                    failed_files.append(
-                                        {
-                                            "filename": "Unknown",
-                                            "reason": "Missing 'fileLink' in response.",
-                                        }
-                                    )
-                        elif isinstance(data, dict):
-                            file_link = data.get("fileLink")
-                            if file_link:
-                                evidence_links.append(file_link)
-                            else:
-                                logger.error(
-                                    "Missing 'fileLink' in Evidence API response."
-                                )
-                                failed_files.append(
-                                    {
-                                        "filename": "Unknown",
-                                        "reason": "Missing 'fileLink' in response.",
-                                    }
-                                )
-                        else:
-                            logger.error(
-                                "Unexpected 'data' format in Evidence API response."
-                            )
-                            failed_files.append(
-                                {
-                                    "filename": "Unknown",
-                                    "reason": "Unexpected 'data' format in response.",
-                                }
-                            )
-                    else:
-                        error_message = evidence_api_data.get(
-                            "message", "Unknown error from Evidence API."
-                        )
-                        logger.error(f"Evidence API failed: {error_message}")
-                        for file_tuple in files_payload:
-                            failed_files.append(
-                                {"filename": file_tuple[1][0], "reason": error_message}
-                            )
-                except ValueError:
-                    logger.error("Evidence API returned a non-JSON response.")
-                    for file_tuple in files_payload:
-                        failed_files.append(
-                            {
-                                "filename": file_tuple[1][0],
-                                "reason": "Non-JSON response from Evidence API.",
-                            }
-                        )
-            else:
-                logger.error(
-                    f"Evidence API responded with status code {evidence_api_response.status_code}"
-                )
-                for file_tuple in files_payload:
-                    failed_files.append(
-                        {
-                            "filename": file_tuple[1][0],
-                            "reason": f"Evidence API responded with status code {evidence_api_response.status_code}",
-                        }
-                    )
-        except requests.Timeout:
-            logger.error("Evidence API request timed out.")
-            for file_tuple in files_payload:
-                failed_files.append(
-                    {"filename": file_tuple[1][0], "reason": "Evidence API timeout."}
-                )
-        except Exception as e:
-            logger.error(
-                f"Exception during upload to Evidence API: {str(e)}", exc_info=True
-            )
-            for file_tuple in files_payload:
-                failed_files.append(
-                    {
-                        "filename": file_tuple[1][0],
-                        "reason": "Exception during upload.",
-                    }
-                )
-        finally:
-            # Close all opened files and remove temporary files
-            for _, file_tuple in files_payload:
-                file_handle = file_tuple[1]
-                file_handle.close()
-                temp_file_path = os.path.join(
-                    app.config["UPLOAD_FOLDER"], file_tuple[0]
-                )
-                if os.path.exists(temp_file_path):
-                    os.remove(temp_file_path)
-
-        if len(evidence_links) == len(files_payload):
-            # All files uploaded successfully
-            return jsonify({"status": "success", "evidence_links": evidence_links}), 200
-        elif len(evidence_links) > 0:
-            # Some files uploaded successfully
-            return (
-                jsonify(
-                    {
-                        "status": "partial_success",
-                        "evidence_links": evidence_links,
-                        "failed_files": failed_files,
-                    }
-                ),
-                207,
-            )  # HTTP 207 Multi-Status
-        else:
-            # No files uploaded successfully
-            return (
-                jsonify(
-                    {
-                        "error": "Failed to upload any evidence files.",
-                        "failed_files": failed_files,
-                    }
-                ),
-                500,
-            )
-    except Exception as e:
-        logger.error(f"Error in upload_evidence: {str(e)}", exc_info=True)
-        return (
-            jsonify({"error": "An unexpected error occurred during evidence upload."}),
-            500,
-        )
-
+# Remove the '/upload_evidence' route as evidence files will be handled during submission
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5151)
